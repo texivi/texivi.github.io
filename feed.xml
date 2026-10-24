@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>texivi</title>
+<link>https://texivi.github.io/</link>
+<description>texivi makes operating systems and runs Exherbo.</description>
+<language>en</language>
+<atom:link href="https://texivi.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>TSWM</title>
+<link>https://texivi.github.io/posts/2026-10-23-tswm.html</link>
+<guid>https://texivi.github.io/posts/2026-10-23-tswm.html</guid>
+<pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate>
+<description>I made TSWM to learn X11, and because I like how Syllable looks. Syllable Desktop 0.6.6 was the one I copied.</description>
+</item>
+<item>
+<title>TempleOS</title>
+<link>https://texivi.github.io/posts/2026-10-23-templeos.html</link>
+<guid>https://texivi.github.io/posts/2026-10-23-templeos.html</guid>
+<pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate>
+<description>I started on my own operating system because of TempleOS. I wanted to see what it is like when one person decides everything.</description>
+</item>
+<item>
+<title>Subverge 0.9.5</title>
+<link>https://texivi.github.io/posts/2026-10-23-subverge-0-9-5.html</link>
+<guid>https://texivi.github.io/posts/2026-10-23-subverge-0-9-5.html</guid>
+<pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate>
+<description>Subverge 0.9.5 can show pictures. The kernel has a JPEG decoder, graphics mode is 24-bit colour now, and gallery goes through nine pictures built into the system.</description>
+</item>
+<item>
+<title>Exherbo</title>
+<link>https://texivi.github.io/posts/2026-10-23-exherbo.html</link>
+<guid>https://texivi.github.io/posts/2026-10-23-exherbo.html</guid>
+<pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate>
+<description>I run Exherbo, I like a distro that expects you to know what you are doing and doesn't hide anything from you</description>
+</item>
+<item>
+<title>AVTTY</title>
+<link>https://texivi.github.io/posts/2026-10-23-avtty.html</link>
+<guid>https://texivi.github.io/posts/2026-10-23-avtty.html</guid>
+<pubDate>Fri, 23 Oct 2026 00:00:00 +0000</pubDate>
+<description>I wrote AVTTY for minimal systems. I wanted an editor that is small enough to run on one, and that needs no setup before it is useful.</description>
+</item>
+<item>
+<title>Welcome</title>
+<link>https://texivi.github.io/posts/2026-10-22-welcome.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-welcome.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>This is my blog. I'll post here when I have something to say. I might also post more stuff later, who knows.</description>
+</item>
+<item>
+<title>What TempleOS is to me</title>
+<link>https://texivi.github.io/posts/2026-10-22-templeos-legacy.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-templeos-legacy.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>Terry Davis made an operating system by himself, with a shell that is also its compiler, in one language, small enough for one person to understand. I don't know of another project that does that.</description>
+</item>
+<item>
+<title>One developer</title>
+<link>https://texivi.github.io/posts/2026-10-22-one-developer.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-one-developer.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>I write all of it myself.</description>
+</item>
+<item>
+<title>Not a daily driver</title>
+<link>https://texivi.github.io/posts/2026-10-22-not-a-daily-driver.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-not-a-daily-driver.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>My operating system is an experimental hobby project. I don't use it for work, and it is not meant to replace anything.</description>
+</item>
+<item>
+<title>A hobby OS is allowed to be impractical</title>
+<link>https://texivi.github.io/posts/2026-10-22-hobby-os.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-hobby-os.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>Nobody needs my operating system, and I don't pretend they do. It runs in QEMU, it has no networking, and you can't get work done in it.</description>
+</item>
+<item>
+<title>Why my docs are long</title>
+<link>https://texivi.github.io/posts/2026-10-22-docs.html</link>
+<guid>https://texivi.github.io/posts/2026-10-22-docs.html</guid>
+<pubDate>Thu, 22 Oct 2026 00:00:00 +0000</pubDate>
+<description>My docs aren't for beginners, and that's fine. My docs as I said before are inspired by OpenBSD's and Exherbo's, more specifically Exherbo's, since the distro is marketed as by devs for devs, and my own OS takes a similar approach.</description>
+</item>
+<item>
+<title>Protection is theatre</title>
+<link>https://texivi.github.io/posts/2026-10-21-protection-is-theatre.html</link>
+<guid>https://texivi.github.io/posts/2026-10-21-protection-is-theatre.html</guid>
+<pubDate>Wed, 21 Oct 2026 00:00:00 +0000</pubDate>
+<description>My OS, Subverge has no users nor permissions not because I couldn't implement them but because I don't want to. The reason why different rings (ring 0, ring 3 etc) exist is because in an OS like GNU/Linux, you need the OS for your daily work. You don't need my OS for work nor do you lose anything from my OS not having protection. I am not saying Linux is &quot;bad&quot; per se, in fact I think Linux is amazing, I personally use Exherbo. But I think more people especially in OsDev should stop worrying so much about protection, your OS isn't going to be daily driven most likely, and that's a good thing, it means you can experiment, see A hobby OS is allowed to be impractical. I think the points in Not a daily driver make sense too.</description>
+</item>
+<item>
+<title>Counting past infinity</title>
+<link>https://texivi.github.io/posts/2026-10-21-counting-past-infinity.html</link>
+<guid>https://texivi.github.io/posts/2026-10-21-counting-past-infinity.html</guid>
+<pubDate>Wed, 21 Oct 2026 00:00:00 +0000</pubDate>
+<description>A video by Vsauce, How To Count Past Infinity, is the reason my operating system has infinite numbers in it. It gave me the names too.</description>
+</item>
+</channel>
+</rss>
