@@ -7,6 +7,7 @@
 <meta name="description" content="This is my blog. I'll post here when I have something to say. I might also post more stuff later, who knows.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-22-welcome.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="Welcome - texivi">
 <meta property="og:description" content="This is my blog. I'll post here when I have something to say. I might also post more stuff later, who knows.">
@@ -22,12 +23,15 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-22">2026-10-22</time></p>
 <h1>Welcome</h1>
 <p>This is my blog. I&#x27;ll post here when I have something to say. I might also post more stuff later, who knows.</p>
+<p class="pn"><a href="../posts/2026-10-22-templeos-legacy.html">&larr; What TempleOS is to me</a><a href="../posts/2026-10-23-avtty.html">AVTTY &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

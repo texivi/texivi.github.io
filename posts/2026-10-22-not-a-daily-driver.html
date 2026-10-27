@@ -7,6 +7,7 @@
 <meta name="description" content="My operating system is an experimental hobby project. I don't use it for work, and it is not meant to replace anything.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-22-not-a-daily-driver.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="Not a daily driver - texivi">
 <meta property="og:description" content="My operating system is an experimental hobby project. I don't use it for work, and it is not meant to replace anything.">
@@ -22,6 +23,7 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-22">2026-10-22</time></p>
@@ -29,7 +31,9 @@
 <p>My operating system is an experimental hobby project. I don&#x27;t use it for work, and it is not meant to replace anything.</p>
 <p>I use Linux every day. It is amazing. I run Exherbo, and I write for Linux too: TSWM, my window manager, is a Linux project. Building my own system is not a statement that Linux got it wrong. Linux solves a different problem, and solves it better than I could.</p>
 <p>I build it to find out what an operating system is when one person decides every part of it.</p>
+<p class="pn"><a href="../posts/2026-10-22-hobby-os.html">&larr; A hobby OS is allowed to be impractical</a><a href="../posts/2026-10-22-one-developer.html">One developer &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

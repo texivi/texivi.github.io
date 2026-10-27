@@ -7,6 +7,7 @@
 <meta name="description" content="I started on my own operating system because of TempleOS. I wanted to see what it is like when one person decides everything.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-23-templeos.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="TempleOS - texivi">
 <meta property="og:description" content="I started on my own operating system because of TempleOS. I wanted to see what it is like when one person decides everything.">
@@ -22,13 +23,16 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-23">2026-10-23</time></p>
 <h1>TempleOS</h1>
 <p>I started on my own operating system because of TempleOS. I wanted to see what it is like when one person decides everything.</p>
 <p>I didn&#x27;t use any of its code.</p>
+<p class="pn"><a href="../posts/2026-10-23-subverge-0-9-5.html">&larr; Subverge 0.9.5</a><a href="../posts/2026-10-23-tswm.html">TSWM &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

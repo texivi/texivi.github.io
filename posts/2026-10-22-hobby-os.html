@@ -7,6 +7,7 @@
 <meta name="description" content="Nobody needs my operating system, and I don't pretend they do. It runs in QEMU, it has no networking, and you can't get work done in it.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-22-hobby-os.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="A hobby OS is allowed to be impractical - texivi">
 <meta property="og:description" content="Nobody needs my operating system, and I don't pretend they do. It runs in QEMU, it has no networking, and you can't get work done in it.">
@@ -22,6 +23,7 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-22">2026-10-22</time></p>
@@ -29,7 +31,9 @@
 <p>Nobody needs my operating system, and I don&#x27;t pretend they do. It runs in QEMU, it has no networking, and you can&#x27;t get work done in it.</p>
 <p>I think that is fine, and that more people should write something nobody needs. A project that has to be useful has to be careful, and a careful project doesn&#x27;t try the strange idea. Mine can have a shell where numbers go past infinity, because nobody will lose a day of work to it.</p>
 <p>The line between a hobby OS and a real one is not size or skill. It is that a real one has to keep working for somebody. I don&#x27;t have anyone to keep working for, and that is why I can try things.</p>
+<p class="pn"><a href="../posts/2026-10-22-docs.html">&larr; Why my docs are long</a><a href="../posts/2026-10-22-not-a-daily-driver.html">Not a daily driver &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

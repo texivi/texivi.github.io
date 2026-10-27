@@ -7,6 +7,7 @@
 <meta name="description" content="Everything I have written, newest first.">
 <link rel="canonical" href="https://texivi.github.io/posts.html">
 <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="Posts - texivi">
 <meta property="og:description" content="Everything I have written, newest first.">
@@ -22,6 +23,7 @@
 <nav>
 <a class="me" href="index.html">texivi</a>
 <a href="about.html">about</a> <a href="projects.html">projects</a> <a href="posts.html">posts</a> <a href="uses.html">uses</a> <a href="links.html">links</a> <a href="contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <h1>Posts</h1>
@@ -42,5 +44,6 @@
 </ul>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

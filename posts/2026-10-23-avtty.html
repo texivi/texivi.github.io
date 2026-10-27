@@ -7,6 +7,7 @@
 <meta name="description" content="I wrote AVTTY for minimal systems. I wanted an editor that is small enough to run on one, and that needs no setup before it is useful.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-23-avtty.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="AVTTY - texivi">
 <meta property="og:description" content="I wrote AVTTY for minimal systems. I wanted an editor that is small enough to run on one, and that needs no setup before it is useful.">
@@ -22,6 +23,7 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-23">2026-10-23</time></p>
@@ -31,7 +33,9 @@
 <p>The mascot, avtta, is inspired by drawings of the Claude Code mascot, from <a href="https://getillustrations.com/illustration-pack/claude-mascot-pack">this illustration pack</a>. I also wanted the editor to be friendly, because a terminal editor tends to be cold, and a small character that shows up when something matters helps.</p>
 <p><img src="../images/avtty-04-typing.png" alt="Typing some C"></p>
 <p>The source is at <a href="https://github.com/texivi/avtty">github.com/texivi/avtty</a>.</p>
+<p class="pn"><a href="../posts/2026-10-22-welcome.html">&larr; Welcome</a><a href="../posts/2026-10-23-exherbo.html">Exherbo &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

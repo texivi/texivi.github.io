@@ -7,6 +7,7 @@
 <meta name="description" content="My OS, Subverge has no users nor permissions not because I couldn't implement them but because I don't want to. The reason why different rings (ring 0, ring 3 etc) exist is because in an OS like GNU/Linux, you need the OS for your daily work. You don't need my OS for work nor do you lose anything from my OS not having protection. I am not saying Linux is &quot;bad&quot; per se, in fact I think Linux is amazing, I personally use Exherbo. But I think more people especially in OsDev should stop worrying so much about protection, your OS isn't going to be daily driven most likely, and that's a good thing, it means you can experiment, see A hobby OS is allowed to be impractical. I think the points in Not a daily driver make sense too.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-21-protection-is-theatre.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="Protection is theatre - texivi">
 <meta property="og:description" content="My OS, Subverge has no users nor permissions not because I couldn't implement them but because I don't want to. The reason why different rings (ring 0, ring 3 etc) exist is because in an OS like GNU/Linux, you need the OS for your daily work. You don't need my OS for work nor do you lose anything from my OS not having protection. I am not saying Linux is &quot;bad&quot; per se, in fact I think Linux is amazing, I personally use Exherbo. But I think more people especially in OsDev should stop worrying so much about protection, your OS isn't going to be daily driven most likely, and that's a good thing, it means you can experiment, see A hobby OS is allowed to be impractical. I think the points in Not a daily driver make sense too.">
@@ -22,12 +23,15 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-21">2026-10-21</time></p>
 <h1>Protection is theatre</h1>
 <p>My OS, Subverge has no users nor permissions not because I couldn&#x27;t implement them but because I don&#x27;t want to. The reason why different rings (ring 0, ring 3 etc) exist is because in an OS like GNU/Linux, you need the OS for your daily work. You don&#x27;t need my OS for work nor do you lose anything from my OS not having protection. I am not saying Linux is &quot;bad&quot; per se, in fact I think Linux is amazing, I personally use <a href="https://exherbo.org">Exherbo</a>. But I think more people especially in OsDev should stop worrying so much about protection, your OS isn&#x27;t going to be daily driven most likely, and that&#x27;s a good thing, it means you can experiment, see <a href="2026-10-22-hobby-os.html">A hobby OS is allowed to be impractical</a>. I think the points in <a href="2026-10-22-not-a-daily-driver.html">Not a daily driver</a> make sense too.</p>
+<p class="pn"><a href="../posts/2026-10-21-counting-past-infinity.html">&larr; Counting past infinity</a><a href="../posts/2026-10-22-docs.html">Why my docs are long &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

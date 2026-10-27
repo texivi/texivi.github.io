@@ -7,6 +7,7 @@
 <meta name="description" content="I run Exherbo, I like a distro that expects you to know what you are doing and doesn't hide anything from you">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-23-exherbo.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="Exherbo - texivi">
 <meta property="og:description" content="I run Exherbo, I like a distro that expects you to know what you are doing and doesn't hide anything from you">
@@ -22,13 +23,16 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-23">2026-10-23</time></p>
 <h1>Exherbo</h1>
 <p>I run Exherbo, I like a distro that expects you to know what you are doing and doesn&#x27;t hide anything from you</p>
 <p>I also have a rule for Subverge, for both the docs and the OS, &#x27;if the Exherbo devs were doing an experimental hobby OS, would they do what I&#x27;m doing right now?&#x27; and if it&#x27;s a yes, I add it, if it&#x27;s a no I don&#x27;t, same with OpenBSD. Both of these OS&#x27;s have amazing developers and I take massive inspiration from both</p>
+<p class="pn"><a href="../posts/2026-10-23-avtty.html">&larr; AVTTY</a><a href="../posts/2026-10-23-subverge-0-9-5.html">Subverge 0.9.5 &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>

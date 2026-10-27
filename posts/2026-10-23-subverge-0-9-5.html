@@ -7,6 +7,7 @@
 <meta name="description" content="Subverge 0.9.5 can show pictures. The kernel has a JPEG decoder, graphics mode is 24-bit colour now, and gallery goes through nine pictures built into the system.">
 <link rel="canonical" href="https://texivi.github.io/posts/2026-10-23-subverge-0-9-5.html">
 <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <meta property="og:title" content="Subverge 0.9.5 - texivi">
 <meta property="og:description" content="Subverge 0.9.5 can show pictures. The kernel has a JPEG decoder, graphics mode is 24-bit colour now, and gallery goes through nine pictures built into the system.">
@@ -22,6 +23,7 @@
 <nav>
 <a class="me" href="../index.html">texivi</a>
 <a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
 </nav>
 <article id="main">
 <p class="meta"><time datetime="2026-10-23">2026-10-23</time></p>
@@ -31,7 +33,9 @@
 <p>Programs can make their own: <code>bitmap</code> gives a pixel grid, <code>bmp-set</code> and <code>bmp-box</code> change it and <code>bmp-show</code> draws it. The credits are a command now too, <code>credits</code>, with a page each for me, gretagen and Vsauce.</p>
 <p><img src="../images/subverge-credits.png" alt="the credits"></p>
 <p>The release and the notes are on <a href="https://sbvrg.github.io/new.html">the Subverge site</a>.</p>
+<p class="pn"><a href="../posts/2026-10-23-exherbo.html">&larr; Exherbo</a><a href="../posts/2026-10-23-templeos.html">TempleOS &rarr;</a></p>
 </article>
 <footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
 </body>
 </html>
