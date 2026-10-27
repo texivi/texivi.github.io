@@ -65,3 +65,14 @@ ul.posts li:hover { padding-left: .5rem; }
 nav a:not(.me):hover, h2 a:hover, ul.posts a:hover, footer a:hover { color: var(--aqua); }
 .now b, ul.posts time { color: var(--blue); }
 code { color: var(--aqua); }
+
+article h1::after { content: "_"; color: var(--acc); animation: blink 1.1s steps(1) infinite; }
+.hero h1::after { content: "_"; }
+.now b::after { content: "\2588"; margin-left: .35em; color: var(--aqua); animation: blink 1.1s steps(1) infinite; }
+.now b::before { content: "\25CF"; margin-right: .5em; color: var(--aqua); animation: blink 2.2s steps(1) infinite; }
+h2::after { content: "_"; color: var(--acc); animation: blink 1.1s steps(1) infinite; }
+nav .me::after { content: "\2588"; margin-left: .2em; font-size: .8em; color: var(--acc); animation: blink 1.1s steps(1) infinite; }
+ul.posts li:hover a::before { content: "> "; color: var(--acc); animation: blink .8s steps(1) infinite; }
+footer::after { content: "$ _"; margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--aqua); animation: blink 1.1s steps(1) infinite; }
+a:hover { animation: blink .9s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { article h1::after, h2::after, .now b::after, .now b::before, nav .me::after, footer::after, ul.posts li:hover a::before, a:hover { animation: none; } }
