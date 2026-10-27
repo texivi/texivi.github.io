@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Fluent is not notarized - texivi</title>
+<meta name="description" content="Fluent is not notarized, so macOS asks you to confirm it the first time.">
+<link rel="canonical" href="https://texivi.github.io/posts/2026-10-27-fluent-not-notarized.html">
+<link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<meta property="og:title" content="Why Fluent is not notarized - texivi">
+<meta property="og:description" content="Fluent is not notarized, so macOS asks you to confirm it the first time.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://texivi.github.io/posts/2026-10-27-fluent-not-notarized.html">
+<meta property="og:image" content="https://texivi.github.io/images/texivi.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#e4ddc8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1a17" media="(prefers-color-scheme: dark)">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<nav>
+<a class="me" href="../index.html">texivi</a>
+<a href="../about.html">about</a> <a href="../projects.html">projects</a> <a href="../posts.html">posts</a> <a href="../uses.html">uses</a> <a href="../links.html">links</a> <a href="../contact.html">contact</a>
+<button id="theme" type="button" aria-label="Toggle light and dark">&#9680;</button>
+</nav>
+<article id="main">
+<p class="meta"><time datetime="2026-10-27">2026-10-27</time></p>
+<h1>Why Fluent is not notarized</h1>
+<p>Fluent is not notarized. Notarization needs a paid Apple Developer account, and I have not set one up for it yet.</p>
+<p>Because of that, macOS may block the app the first time you open it. Go to System Settings, Privacy &amp; Security and click Open Anyway. After that it opens normally.</p>
+<p>The build setup on GitHub already has the signing and notarization steps. They run once the account secrets are added, and the app will open without the prompt after that. The source is at <a href="https://github.com/fluent-mac/fluent">github.com/fluent-mac/fluent</a>.</p>
+<p class="pn"><a href="../posts/2026-10-27-fluent.html">&larr; Fluent</a><a href="../posts.html">all posts</a></p>
+</article>
+<footer><a href="https://github.com/texivi">GitHub</a> <a href="../contact.html">Contact</a></footer>
+<script>(function(){var r=document.documentElement,b=document.getElementById("theme");try{var t=localStorage.getItem("theme");if(t)r.dataset.theme=t}catch(e){}b.onclick=function(){var d=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");d=d=="dark"?"light":"dark";r.dataset.theme=d;try{localStorage.setItem("theme",d)}catch(e){}}})()</script>
+</body>
+</html>
