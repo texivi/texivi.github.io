@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tools - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="tools">Tools</h1>
+<p>&quot;Tools&quot; are the small utility programs that come with Subverge, such as a clock, a calculator and a hex viewer. They are written in omega and kept in <a href="root.html">root</a>, so <code>&#x27;name see</code> prints the source of any of them and <code>&#x27;name open</code> opens the unit it is in. A full-screen tool is left with <code>q</code>, Escape or Ctrl-C. <a href="games.html">Games</a> and <a href="demos.html">demos</a> cover the rest of <code>apps</code>.</p>
+<h2 id="clock">clock</h2>
+<pre><code>clock
+</code></pre>
+<p>A full-screen clock with the date underneath, redrawn twice a second. It reads the real-time clock through <code>time</code>, so in QEMU it shows UTC unless QEMU was started with <code>-rtc base=localtime</code>.</p>
+<h2 id="stopwatch">stopwatch</h2>
+<pre><code>stopwatch
+</code></pre>
+<p>Counts minutes, seconds and hundredths from the moment it starts. Space records a lap under the time, up to 14 laps. It counts timer ticks, so it is resolution is a hundredth of a second.</p>
+<h2 id="timer">timer</h2>
+<pre><code>90 timer
+</code></pre>
+<p>Counts down the given number of seconds in the middle of the screen, then tells you the time is up and waits for a key. <code>q</code> cancels it early. A timer runs in its own tab while you work in another, and the tab&#x27;s <code>*</code> in the tab bar shows when it has finished.</p>
+<h2 id="cal-month-and-date">cal, month and date</h2>
+<pre><code>cal                 this month, with today in red
+2026 12 month       any month
+date say            2026-10-19
+</code></pre>
+<p><code>cal</code> and <code>month</code> print a calendar with weeks starting on Monday, and <code>date</code> leaves today&#x27;s date as a string in ISO order, which sorts correctly as text. All three use the real-time clock, so in QEMU they show the UTC date unless the clock is set to local time.</p>
+<p>The helpers are usable on their own:</p>
+<pre><code>2024 leap? .                1
+2024 2 month-days .         29
+2026 10 first-weekday .     3, a Thursday, counting Monday as 0
+</code></pre>
+<h2 id="todo">todo</h2>
+<pre><code>&quot;buy milk&quot; todo-add
+&quot;fix the fan&quot; todo-add
+todo
+1 todo-done
+</code></pre>
+<p><code>todo</code> prints the numbered list, <code>todo-add</code> adds a string to the end and <code>n todo-done</code> removes item <code>n</code>. The list is a definition called <code>todo-list</code> in your tab, which has three consequences: each tab has its own list, <code>back</code> undoes a change to it, and on an installed disk it is <a href="saving.html">saved</a> with the tab. To share one list between tabs, move <code>todo-list</code> into a <a href="units.html">unit</a>.</p>
+<h2 id="calc">calc</h2>
+<pre><code>calc
+</code></pre>
+<p>An infix calculator with its own prompt, <code>calc »</code>. It takes the usual operators with the usual precedence, which omega itself does not:</p>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>+ - * /</code></td>
+<td>arithmetic</td>
+</tr>
+<tr>
+<td><code>%</code></td>
+<td>remainder</td>
+</tr>
+<tr>
+<td><code>**</code></td>
+<td>power, with exponents from 0 to 64</td>
+</tr>
+<tr>
+<td><code>( )</code></td>
+<td>grouping</td>
+</tr>
+<tr>
+<td><code>&amp; \| ^ ~</code></td>
+<td>bitwise and, or, exclusive or, not</td>
+</tr>
+<tr>
+<td><code>&lt;&lt; &gt;&gt;</code></td>
+<td>shifts</td>
+</tr>
+</tbody>
+</table>
+<p><code>^</code> is exclusive or, as in C, and power is <code>**</code>. Numbers can be written in decimal, <code>0x</code> hex and <code>0b</code> binary, and <code>ans</code> is the previous result.</p>
+<p>Arithmetic is fixed point with six decimal places, so <code>1/3</code> is <code>0.333333</code>. Bitwise operators work on the whole part. A whole result is also shown in hex and, when it is short enough, in binary.</p>
+<p>An empty line leaves. <code>calc</code> keeps its own line history, seperate from the prompt&#x27;s, and the history survives between runs in the same tab.</p>
+<h2 id="bases-and-ascii">bases and ascii</h2>
+<pre><code>255 bases
+</code></pre>
+<p>prints a number in decimal, hex, octal and binary, and the character it stands for when it is printable.</p>
+<pre><code>ascii
+</code></pre>
+<p>prints the printable characters 32 to 126 as a table, with the row and column giving the hex code.</p>
+<h2 id="convert">convert</h2>
+<pre><code>convert             lists the conversions
+100 km&gt;mi say       62.13
+</code></pre>
+<p>The conversions are <code>km&gt;mi</code>, <code>mi&gt;km</code>, <code>kg&gt;lb</code>, <code>lb&gt;kg</code>, <code>c&gt;f</code> and <code>f&gt;c</code>. Each takes a whole number and leaves a string with two decimals. They work in hundredths internally, so <code>98 f&gt;c</code> is <code>36.66</code>. Adding one is a line in the <code>tools</code> unit: <code>[ 3937 * dec2 ] :m&gt;in</code> for metres to inches.</p>
+<h2 id="password">password</h2>
+<pre><code>password            five random passwords
+24 password-of say  one of a given length
+</code></pre>
+<p>Passwords are drawn from letters and digits with the easily confused ones left out (<code>l</code>, <code>I</code>, <code>O</code>, <code>0</code>, <code>1</code>). They use <code>rand</code>, which is seeded from the CPU&#x27;s cycle counter and fine for a throwaway test account, but not designed for real secrets (<a href="numbers.html">numbers</a>).</p>
+<h2 id="colors-and-themes">colors and themes</h2>
+<pre><code>colors              the 16 colour numbers, drawn in their colours
+themes              the colour themes
+</code></pre>
+<p><code>colors</code> shows each number with a sample. The names next to the samples are the ones from the <code>dusk</code> theme, and other themes keep the role of each number but change the colour itself (<a href="themes.html">themes</a>).</p>
+<h2 id="top">top</h2>
+<pre><code>top
+</code></pre>
+<p>A live view of the machine, updated twice a second:</p>
+<ul>
+<li>the CPU model and the idle percentage, with a bar;</li>
+<li>heap used and total, with a bar;</li>
+<li>the kernel&#x27;s size;</li>
+<li>each tab&#x27;s title and state, with <code>*</code> on the visible one;</li>
+<li>the current tab&#x27;s world: definitions, stack depth and history length;</li>
+<li>live objects and garbage collections in the current tab;</li>
+<li>timer and keyboard interrupts, in total and per second;</li>
+<li>uptime.</li>
+</ul>
+<p>Run something heavy in another tab and the idle percentage drops. A tab waiting at its prompt costs nothing.</p>
+<h2 id="watch-and-timeit">watch and timeit</h2>
+<pre><code>[ ticks . ] watch           reruns a quote twice a second until a key
+[ 100000 [ ] times ] timeit times one run in ticks and CPU cycles
+</code></pre>
+<p><code>watch</code> clears the screen before each run, so it suits code that prints a small report. <code>timeit</code> prints the time in ticks and in cycles from <code>rdtsc</code>. Comparing interpreted and compiled code is what <code>bench</code> is for (<a href="jit.html">JIT</a>).</p>
+<h2 id="machine-inspectors">Machine inspectors</h2>
+<p>These read the hardware and change nothing, so they are safe to run anywhere:</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sys</code></td>
+<td>the <a href="logos.html">logo</a>, versions, uptime, CPU and memory</td>
+</tr>
+<tr>
+<td><code>pcils</code></td>
+<td>every PCI device with its vendor and class</td>
+</tr>
+<tr>
+<td><code>memls</code></td>
+<td>the firmware&#x27;s memory map</td>
+</tr>
+<tr>
+<td><code>cpuinfo</code></td>
+<td>CPU vendor, model, feature flags and control registers</td>
+</tr>
+<tr>
+<td><code>irqmon</code></td>
+<td>timer and keyboard interrupts, live</td>
+</tr>
+<tr>
+<td><code>disks</code></td>
+<td>the IDE drives and which one Subverge is installed on</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hexview">hexview</h2>
+<pre><code>0xB8000 hexview
+</code></pre>
+<p>A hex editor on live memory, starting at the given address. The arrow keys move the cursor, Page Up and Page Down move by a screen of 336 bytes, and typing two hex digits writes a byte at the cursor. Writes go straight to RAM and cannot be undone, by <code>back</code> or anything else. <code>0xB8000</code> is the memory of the text screen, so editing it is a safe way to try the tool. Elsewhere it can crash the shell or the machine (<a href="memory.html">memory</a>).</p>
+<h2 id="install">install</h2>
+<p>For <code>install</code> and <code>disks</code>, see <a href="machine.html">machine</a> and <a href="saving.html">saving</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

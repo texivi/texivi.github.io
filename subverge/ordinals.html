@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordinals - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="ordinals">Ordinals</h1>
+<p>An &quot;ordinal&quot; is a number that tells you the place of something in a list: first, second, third, and so on. An ordinal can also go past the end of an infinite list. After all the whole numbers comes the first infinite ordinal, ω (the Greek letter omega). In omega, the word <code>omega</code> gives you ω, and ordinals work like any other number: you can add, multiply, compare, store and print them. For the size of a set, instead of a position, see <a href="cardinals.html">cardinals</a>.</p>
+<h2 id="what-they-are">What they are</h2>
+<p>Watch Vsauce&#x27;s <a href="https://www.youtube.com/watch?v=SrU9YDoXE88">How To Count Past Infinity</a> first. The infinite values in Subverge come from it, and the rest of this page assumes the idea it starts with: a number can say how many things there are, or where something is in a line, and past the finite those are different questions. Ordinals answer the second one. <a href="cardinals.html">Cardinals</a> answer the first.</p>
+<p>The natural numbers 0, 1, 2, ... never end, and <code>omega</code> is the position right after all of them:</p>
+<pre><code>1000000 omega &lt; .       1
+2 1000 ^ omega &lt; .      1
+</code></pre>
+<p>No integer reaches it, however big. After ω, counting carries on as usual, and every step is a value you can type:</p>
+<pre><code>omega 1 + .             ω+1
+omega omega + .         ω·2
+omega omega * .         ω²
+omega omega ^ .         ω^ω
+</code></pre>
+<p>The order goes 0, 1, 2, ..., ω, ω+1, ..., ω·2, ..., ω², ..., ω^ω, ..., ε₀, ..., ω₁. Run <code>count</code> to watch it go by on screen (<a href="demos.html">demos</a>).</p>
+<h2 id="literals">Literals</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Value</th>
+<th>Printed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>omega</code></td>
+<td>the first infinite ordinal</td>
+<td><code>ω</code></td>
+</tr>
+<tr>
+<td><code>epsilon0</code></td>
+<td>the first ordinal with ω^x = x</td>
+<td><code>ε₀</code></td>
+</tr>
+<tr>
+<td><code>omega1</code></td>
+<td>the first uncountable ordinal</td>
+<td><code>ω₁</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>epsilon0</code> is the limit of ω, ω^ω, ω^ω^ω and so on, so <code>omega epsilon0 ^</code> is <code>epsilon0</code> again. <code>omega1</code> comes after every ordinal that can be built from <code>omega</code> and <code>epsilon0</code>, and it is the first one with uncountably many ordinals below it.</p>
+<p>Every other ordinal is built from these and the natural numbers with <code>+</code>, <code>*</code> and <code>^</code>. Non-negative integers act as finite ordinals when combined with an ordinal, and a result that is finite comes back as a plain integer.</p>
+<h2 id="addition">Addition</h2>
+<p>Addition is not commutative. <code>a b +</code> is the sequence <code>a</code> followed by the sequence <code>b</code>:</p>
+<pre><code>omega 1 + .             ω+1
+1 omega + .             ω
+</code></pre>
+<p>Think of <code>1 omega +</code> as one element placed in front of a line of ω elements. The new element takes position 0, the old position 0 moves to 1, and so on. Every element still has a natural-number position, and the line still has no last element, so the result has the same shape as ω and is equal to it. <code>omega 1 +</code> places one element after the whole line. That element sits at position ω, the line now has a last element, and ω has none, so ω+1 is a different, larger ordinal.</p>
+<p>In general, in <code>a b +</code>, every part of <code>a</code> smaller than the leading part of <code>b</code> is absorbed.</p>
+<pre><code>omega 5 + omega + .     ω·2
+omega 2 ^ omega + .     ω²+ω
+omega omega 2 ^ + .     ω²
+</code></pre>
+<h2 id="multiplication">Multiplication</h2>
+<p><code>a b *</code> is <code>b</code> copies of <code>a</code> placed one after another, and it is not commutative either:</p>
+<pre><code>omega 2 * .             ω·2, two copies of ω
+2 omega * .             ω, ω copies of a pair
+omega 1 + 2 * .         ω·2+1
+omega omega * .         ω²
+</code></pre>
+<p><code>2 omega *</code> is ω copies of a pair of elements in a row. That line is 0, 1, 2, 3, ... again, so it is ω. <code>omega 2 *</code> is a line of ω followed by a second line of ω, which has a limit position in the middle and is ω·2. Multiplying by a finite number on the right multiplies the leading coefficient and keeps the rest. Multiplying by an infinite ordinal on the right adds to the exponents instead.</p>
+<h2 id="powers">Powers</h2>
+<pre><code>omega 2 ^ .             ω²
+omega omega ^ .         ω^ω
+2 omega ^ .             ω
+omega 1 + 2 ^ .         ω²+ω+1
+omega epsilon0 ^ epsilon0 = .       1
+</code></pre>
+<p>A finite base raised to an infinite power becomes a power of ω: 2^ω is the limit of 2, 4, 8, ..., which is ω. The last line is the defining property of ε₀: it is the first fixed point of x ↦ ω^x.</p>
+<p>A power with a finite part in the exponent is computed by repeated multiplication, and a finite part above 64 fails. <code>omega omega 100 + ^</code> fails this way, while <code>omega omega ^</code> is fine.</p>
+<h2 id="comparison">Comparison</h2>
+<p>All comparison words work and follow the ordinal order:</p>
+<pre><code>5 omega &lt; .                     1
+omega omega 1 + &lt; .             1
+1 omega + omega = .             1
+omega 2 ^ omega omega ^ &lt; .     1
+epsilon0 omega1 &lt; .             1
+</code></pre>
+<p>Every finite number, bignums included, is below every infinite ordinal. Negative numbers compare as smaller than all ordinals.</p>
+<p><code>=</code> on two ordinals compares them by value, so <code>1 omega + omega =</code> is <code>1</code> even though they were built differently.</p>
+<h2 id="what-does-not-exist">What does not exist</h2>
+<p>Ordinals have no subtraction, division or negatives, and the attempts fail:</p>
+<pre><code>omega 1 -           ordinals only support + * and ^
+omega -3 +          ordinals are never negative
+</code></pre>
+<p>Bignums mix with ordinals only where they would be absorbed anyway: <code>2 100 ^ omega +</code> is ω, but <code>omega 2 100 ^ +</code> fails, since ω followed by 2^100 elements cannot be written with a 64-bit coefficient.</p>
+<h2 id="testing-and-converting">Testing and converting</h2>
+<pre><code>omega ordinal? .        1
+5 ordinal? .            0
+omega 2 * card .        ℵ₀
+omega1 card .           ℵ₁
+</code></pre>
+<p><code>ordinal?</code> is true only for infinite ordinals, since finite ones are plain integers. <code>card</code> gives the cardinality of an ordinal: <code>aleph0</code> for every countable ordinal and <code>aleph1</code> for <code>omega1</code> and everything built on it (<a href="cardinals.html">cardinals</a>).</p>
+<h2 id="printing-and-saving">Printing and saving</h2>
+<p>On screen, ordinals print in Cantor normal form with the glyphs the kernel adds to the font: <code>ω</code>, a middle dot for coefficients, <code>²</code> for a square and <code>^</code> for other exponents, with brackets where an exponent has several parts:</p>
+<pre><code>omega 2 * 3 + .                 ω·2+3
+omega omega 2 * ^ .             ω^(ω·2)
+</code></pre>
+<p><code>.</code> and <code>say</code> print this form, and <code>str</code> gives the same text. When a tab is <a href="saving.html">saved</a>, ordinals are written back as omega code, so <code>ω·2+3</code> is saved as <code>omega 2 * 3 +</code> and read back exactly.</p>
+<p><a href="infinity.html">How infinity works</a> shows the representation and the algorithms.</p>
+<h2 id="using-them">Using them</h2>
+<p>Ordinals are mostly a demonstration, but they are real values that programs can use. A program can count past the end of a loop, use ω as an &quot;unbounded&quot; marker that compares above every number, or build termination arguments, where each step must decrease an ordinal. <code>count</code>, <code>ord-demo</code> and <code>&#x27;show see</code> are short examples.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

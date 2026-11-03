@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internals - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="internals">Internals</h1>
+<p>This page follows Subverge from the moment the machine is switched on to the moment the prompt appears, and then shows how the parts fit together while the system runs.</p>
+<h2 id="the-pieces">The pieces</h2>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it is</th>
+<th>More</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MBR and stage 2</td>
+<td>the bootloader for installed disks</td>
+<td><a href="boot.html">boot</a></td>
+</tr>
+<tr>
+<td><code>kmain</code></td>
+<td>brings everything up in order</td>
+<td>below</td>
+</tr>
+<tr>
+<td>interrupts</td>
+<td>IDT, the two PICs, the PIT at 100 Hz</td>
+<td><a href="scheduler.html">scheduler</a></td>
+</tr>
+<tr>
+<td>scheduler</td>
+<td>four tasks, one per tab, preemptive</td>
+<td><a href="scheduler.html">scheduler</a></td>
+</tr>
+<tr>
+<td>heap</td>
+<td>one first-fit allocator for everything</td>
+<td><a href="memory.html">memory</a></td>
+</tr>
+<tr>
+<td>VGA</td>
+<td>text mode, a buffer per tab, the font and palette, and graphics mode</td>
+<td><a href="screen.html">screen</a></td>
+</tr>
+<tr>
+<td>keyboard</td>
+<td>PS/2, a key queue per task</td>
+<td><a href="keyboard.html">keyboard</a></td>
+</tr>
+<tr>
+<td>mouse</td>
+<td>PS/2, on IRQ 12, drawn as an inverted cell</td>
+<td><a href="ps2.html">ps2</a></td>
+</tr>
+<tr>
+<td>ATA</td>
+<td>PIO, polled, four drives at most</td>
+<td><a href="disk-layout.html">disk layout</a></td>
+</tr>
+<tr>
+<td>persistence</td>
+<td>the state header and the five slots</td>
+<td><a href="saving.html">saving</a></td>
+</tr>
+<tr>
+<td>omega</td>
+<td>the interpreter, worlds, transactions, GC</td>
+<td><a href="gc.html">gc</a></td>
+</tr>
+<tr>
+<td>ordinals</td>
+<td>Cantor normal form and cardinal arithmetic</td>
+<td><a href="ordinals.html">ordinals</a></td>
+</tr>
+<tr>
+<td>root</td>
+<td>the units, built at boot and rebuilt on edit</td>
+<td><a href="root.html">root</a></td>
+</tr>
+<tr>
+<td>JIT</td>
+<td>quotes to x86-64, plus the disassembler</td>
+<td><a href="jit.html">JIT</a>, <a href="dis.html">dis</a></td>
+</tr>
+<tr>
+<td>help</td>
+<td>the table every word must be in</td>
+<td><a href="help.html">help</a></td>
+</tr>
+<tr>
+<td>scrawl</td>
+<td>the editor</td>
+<td><a href="scrawl.html">scrawl</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="boot-in-order">Boot, in order</h2>
+<ol>
+<li>The ISO&#x27;s GRUB, or an installed disk&#x27;s own <a href="boot.html">bootloader</a>, loads the kernel at 1 MiB and jumps to it in 32-bit protected mode with Multiboot information.</li>
+<li><code>boot.asm</code> builds an identity map of the first 4 GiB from 2 MiB pages, turns on PAE and long mode, loads a 64-bit GDT and calls <code>kmain</code>.</li>
+<li><code>kmain</code> first copies the kernel&#x27;s <code>.data</code> section aside, before anything&#x27;s had a chance to change it, so that <code>install</code> can later write out a clean kernel.</li>
+<li>VGA, the font and palette, and the CPU tables come up: the IDT, the remapped PICs.</li>
+<li>The Multiboot info is read for the memory size, the memory map and the loader&#x27;s name.</li>
+<li>The heap is set up after the kernel, up to 64 MiB.</li>
+<li>The scheduler, then persistence, which looks for an installed drive and reads it is state header.</li>
+<li>Every built-in word is registered, ordinals are initialised, and root is built from the units linked into the kernel, or from the root slot if there is one and it builds.</li>
+<li>Four tasks are started, one per tab, the PIT is set to 100 Hz, the keyboard and the mouse are turned on, and interrupts are enabled.</li>
+<li><code>kmain</code> becomes the idle task, running <code>hlt</code> in a loop.</li>
+</ol>
+<p>When each tab&#x27;s task first runs, it loads it&#x27;s saved world from its slot if there is one, tab 1 runs <code>startup</code>, and all four wait at a prompt.</p>
+<h2 id="design">Design</h2>
+<p>Most of the design follows from two decisions. Everything runs in ring 0 in a single address space, so the kernel and omega work on the same data structures directly. And nothing in an omega world is modified in place, which is what makes <a href="transactions.html">transactions</a>, <a href="back.html">back</a> and <a href="saving.html">saving</a> fast.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

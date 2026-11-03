@@ -1,0 +1,2540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Development - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="development">Development</h1>
+<p>This page is for people who want to change Subverge. It shows how Subverge is built, how the parts of the source tree fit together, how the documentation is made and where each kind of change belongs.</p>
+<h2 id="overview">Overview</h2>
+<p>The system has three layers, and a change goes in the lowest layer that can express it:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Written in</th>
+<th>Lives in</th>
+<th>Needs a rebuild of the kernel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the kernel, ordinal</td>
+<td>C and assembly</td>
+<td><code>kernel/</code>, <code>boot/</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td>the shell, omega</td>
+<td>C</td>
+<td><code>kernel/omega.c</code>, <code>kernel/words.c</code> and the other <code>*_words</code> tables</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>the programs and utilities</td>
+<td>omega</td>
+<td><code>root/</code></td>
+<td>no, but they are linked in at build time</td>
+</tr>
+</tbody>
+</table>
+<p>There is no filesystem, so there are no files to install. Everything the system needs is linked into one ELF image: the kernel, the root units, the help pages, the boot stages that <code>install</code> writes to a disk. A running system carries its own source for the programs in <code>root/</code>, since root is kept as omega source and rebuilt when it is edited (<a href="root.html">root</a>).</p>
+<h2 id="requirements">Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>For</th>
+<th>You need</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the kernel</td>
+<td>gcc, binutils (<code>ld</code>, <code>objcopy</code>), nasm, make</td>
+</tr>
+<tr>
+<td>running it</td>
+<td><code>qemu-system-x86_64</code></td>
+</tr>
+<tr>
+<td>the ISO</td>
+<td><code>grub-mkrescue</code>, <code>xorriso</code>, the BIOS GRUB modules</td>
+</tr>
+<tr>
+<td>the screenshots</td>
+<td><code>socat</code> and ImageMagick, for <code>test/</code> scripts that use the monitor socket</td>
+</tr>
+<tr>
+<td>the website</td>
+<td><code>md2html</code> (md4c) and gawk</td>
+</tr>
+</tbody>
+</table>
+<p>On Exherbo, with the <code>virtualization</code> repository added:</p>
+<pre><code># cave resolve -x sys-devel/gcc sys-devel/binutils dev-lang/nasm app-virtualization/qemu \
+    sys-boot/grub app-cdr/libisoburn
+</code></pre>
+<p>The kernel is compiled freestanding for x86-64. It does not link against libc, and the compiler must be able to produce 64-bit code with <code>-mgeneral-regs-only</code>, since the kernel never saves SSE state. Any gcc that accepts the flags in the Makefile works.</p>
+<h2 id="source">Source</h2>
+<pre><code>$ git clone https://github.com/texivi/Subverge
+$ cd Subverge
+</code></pre>
+<h3 id="the-tree">The tree</h3>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boot/</code></td>
+<td>the Multiboot entry, the MBR and the second boot stage, all assembly</td>
+</tr>
+<tr>
+<td><code>kernel/</code></td>
+<td>the C source, one file per subsystem, and its headers</td>
+</tr>
+<tr>
+<td><code>root/</code></td>
+<td>the omega units, one per file, in the order they are built</td>
+</tr>
+<tr>
+<td><code>doc/</code></td>
+<td>the help pages, one markdown file per page</td>
+</tr>
+<tr>
+<td><code>art/</code></td>
+<td>the JPEG pictures that <code>picture</code> and <code>gallery</code> use</td>
+</tr>
+<tr>
+<td><code>test/</code></td>
+<td>the host harness, the QEMU driver and the <code>.qd</code> scripts</td>
+</tr>
+<tr>
+<td><code>build/</code></td>
+<td>everything the Makefile produces, thrown away by <code>make clean</code></td>
+</tr>
+</tbody>
+</table>
+<p>The files in <code>kernel/</code> are listed under <a href="#the-kernel-files">The kernel files</a>.</p>
+<h2 id="building">Building</h2>
+<pre><code>$ make                build/subverge.elf
+$ make run            boot it in QEMU
+$ make iso            build/subverge.iso
+$ make run-iso        boot the ISO in QEMU
+$ make disk           a blank 64M build/disk.img
+$ make run-install    the kernel with that disk attached, for install
+$ make run-disk       boot build/disk.img on its own
+$ make host           the interpreter as a Linux program
+$ make stress         the same, collecting garbage before every word
+$ make jit-test       boot QEMU and run the JIT test script
+$ make clean          throw build/ away
+</code></pre>
+<h3 id="the-kernel-image">The kernel image</h3>
+<p><code>make</code> compiles every file in <code>kernel/</code> freestanding, with no standard library, no red zone, no SSE and no stack protector, and links the objects with <code>boot/boot.asm</code>, the root blob, the help page blob and the two boot stages into a 64-bit ELF, <code>build/ordinal.elf</code>. It is then converted to a 32-bit ELF with <code>objcopy</code>, since Multiboot loaders only accept 32-bit ELF, giving <code>build/subverge.elf</code>. The linker script is <code>linker.ld</code>, and it places the kernel at 1 MiB.</p>
+<p>A new <code>.c</code> file in <code>kernel/</code> is picked up by the wildcard in the Makefile. A new header is not tracked individually: every object depends on every header, so a header change rebuilds everything.</p>
+<h3 id="blobs-linked-into-the-kernel">Blobs linked into the kernel</h3>
+<p>Four kinds of data are linked into the kernel with <code>ld -r -b binary</code>, which turns a file into an object with <code>_binary_&lt;path&gt;_start</code> and <code>_binary_&lt;path&gt;_end</code> symbols:</p>
+<table>
+<thead>
+<tr>
+<th>Blob</th>
+<th>Made from</th>
+<th>Read by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build/rootfs.bin</code></td>
+<td>every file in <code>root/</code>, concatenated in file name order</td>
+<td><code>kernel/root.c</code>, at boot</td>
+</tr>
+<tr>
+<td><code>build/docfs.bin</code></td>
+<td>every file in <code>doc/</code>, each preceded by a line <code>#&gt;&gt; name</code></td>
+<td><code>kernel/doc.c</code>, when a page is opened</td>
+</tr>
+<tr>
+<td><code>build/pics.bin</code></td>
+<td>every file in <code>art/</code>, each preceded by a line <code>#&gt;&gt; name length</code></td>
+<td><code>kernel/img.c</code>, when a picture is decoded</td>
+</tr>
+<tr>
+<td><code>build/bootbins.o</code></td>
+<td>the MBR and stage 2, assembled as flat binaries</td>
+<td><code>kernel/persist.c</code>, by <code>install</code></td>
+</tr>
+</tbody>
+</table>
+<p>Unit files start with a number to set the order, so a unit can use the words of the units before it. The help pages are sorted by name, and the order doesn&#x27;t matter, since the pager looks pages up by name.</p>
+<h3 id="the-iso">The ISO</h3>
+<p><code>make iso</code> puts <code>build/subverge.elf</code> in an ISO tree with a generated <code>grub.cfg</code> that has one entry, which loads it with <code>multiboot</code> and boots it, and runs <code>grub-mkrescue</code> on the tree. The result is a live CD: it boots straight into the kernel and keeps nothing.</p>
+<h2 id="running">Running</h2>
+<pre><code>$ qemu-system-x86_64 -cdrom build/subverge.iso -m 256M
+</code></pre>
+<p><code>-m 256M</code> is the amount the system is tested with. See <a href="qemu.html">QEMU</a> for the flags that matter: <code>-vga std</code> for graphics mode, <code>-audiodev</code> for <code>beep</code>, <code>-rtc base=localtime</code> for the clock, and the mouse, which QEMU gives to the guest after the first click in its window.</p>
+<p>A direct <code>-kernel</code> boot, <code>qemu-system-x86_64 -kernel build/subverge.elf -m 256M</code>, is quicker than building the ISO and is what <code>make run</code> does. The two differ only in the loader: GRUB passes a memory map, and QEMU&#x27;s own Multiboot loader passes less.</p>
+<h2 id="tests">Tests</h2>
+<pre><code>$ make host           the interpreter as a Linux program
+$ make stress         the same, collecting garbage before every word
+$ make jit-test       boot QEMU and run the JIT test script
+</code></pre>
+<p><code>qdrive</code> types into a running QEMU and takes screenshots, see below. Run <code>make host</code>, <code>make stress</code>, the docs check and <code>make doccheck</code> before every commit.</p>
+<h3 id="the-docs-check">The docs check</h3>
+<pre><code>$ printf &#x27;@docs\n&#x27; | build/host
+</code></pre>
+<p>must print <code>0 problems</code>. It compares the table in <code>kernel/help.c</code> with the words that exist, and fails when a word has no entry, an entry has no word, a group is unknown, a description is longer than 52 characters or a stack effect is longer than 15. It checks the table that <code>help</code> reads and that the word pages in the help viewer are made from. The pages in <code>doc/</code> are checked by <code>make doccheck</code>.</p>
+<h2 id="adding-a-word">Adding a word</h2>
+<p>Built-in words live in the <code>*_words</code> tables at the bottom of their C files (see Built-ins below). Root words live in <code>root/</code> and are written in omega. Either way the word needs an entry in <code>kernel/help.c</code>, and the website needs a row in <a href="all-words.html">all words</a>.</p>
+<h3 id="the-help-table">The help table</h3>
+<p>An entry in <code>kernel/help.c</code> has five fields:</p>
+<pre><code>{ &quot;demos&quot;, &quot;pair&quot;, &quot;a b -- n&quot;, &quot;Cantor pairing: two numbers into one number.&quot;, &quot;3 4 pair&quot; },
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>group</td>
+<td>one of the groups at the top of <code>help.c</code>; <code>help</code> lists a group&#x27;s words together</td>
+</tr>
+<tr>
+<td>name</td>
+<td>the word, exactly as it is typed</td>
+</tr>
+<tr>
+<td>effect</td>
+<td>the stack effect, at most 15 characters, <code>--</code> between inputs and outputs</td>
+</tr>
+<tr>
+<td>text</td>
+<td>what it does, one sentence of at most 52 characters</td>
+</tr>
+<tr>
+<td>example</td>
+<td>a line that runs, or an empty string when there is nothing sensible to run</td>
+</tr>
+</tbody>
+</table>
+<p>The table is read by three things: <code>help</code> and <code>apropos</code> in the shell, the pages of words in the help viewer, and the docs check. A word with no entry is reported by the check, so the table can&#x27;t fall behind the words.</p>
+<h3 id="a-root-word">A root word</h3>
+<p>A root word goes in the unit it belongs with (<a href="units.html">units</a>). Helpers that a program uses internally, and that nobody would type, are still words, so they need an entry too, in the <code>helpers</code> group.</p>
+<h3 id="checking-it">Checking it</h3>
+<pre><code>$ make host &amp;&amp; printf &#x27;3 4 pair .\n@docs\n&#x27; | build/host
+$ make stress
+</code></pre>
+<h2 id="screenshots">Screenshots</h2>
+<p>Screenshots are taken from QEMU with its monitor, at the default text size, and are saved in <code>images/</code> with a number in front, in the order they were added. Take them on a clean boot of the live ISO so that they show what a user sees.</p>
+<p>The pictures that <code>gallery</code> shows besides the photographs are in <code>shots/</code> as baseline JPEG files of 640 by 480, and the build puts them into the kernel with the pictures of <code>art/</code>. The text screens are scaled to 640 pixels wide and put at the top of a canvas in the colour of the background, so no picture is stretched, and they are saved at quality 65. The kernel image has to stay under the 4 MiB between the boot sectors and the state of the disk, which <code>install</code> checks.</p>
+<h2 id="keys-and-the-line-editor">Keys and the line editor</h2>
+<p><code>kbd.c</code> reads the scancodes in the keyboard interrupt and tracks shift, control, alt, caps lock and Super. A key that is typed with Alt is queued as <code>META(c)</code>, which is <code>K_META | c</code>, so the consumers see <code>M-f</code> as one integer. Ctrl-H is queued as <code>K_CH</code> and not as 8, since 8 is Backspace, and Ctrl-M is queued as Enter. C-c and C-g also set the break flag of the tab. The codes are in <code>kbd.h</code>.</p>
+<p>C-x is a prefix that the interrupt handles. After C-x, <code>kbd_xpend</code> is set and the tab bar shows <code>C-x -</code>. If the next key is one of <code>o 0 1 2 3</code>, the window command runs in the interrupt and nothing is queued. Any other key queues C-x followed by that key, so the editor and the line editor see the whole sequence. Super combinations call the window functions in <code>vga.c</code> the same way.</p>
+<p><code>line.c</code> is a table of commands. <code>line_keys</code> has a row for each key with its code, the name of the command and one line of documentation, and <code>command_for</code> maps a name to the function that works on <code>struct ed</code>, which holds the line, the cursor, the undo snapshots and the state of the kill and yank sequence. To add a key, add a row to the table and a case to <code>command_for</code>. <code>describe-key</code> and the bindings page read the same table, so they list the new key without further work. <code>readline</code> allocates its state with <code>kmalloc</code>, about 3.5 KB, and the editor refreshes its position on every key, since a window can change size while it waits.</p>
+<p><code>keys.c</code> has the key names (<code>key_name</code> and <code>key_parse</code>) and the user bindings. A binding is a definition named <code>key:</code> and the key names joined with <code>_</code>, found by <code>key_bound</code> in the dictionary of the tab and then in root. <code>key_run</code> in <code>omega.c</code> runs its quote on a copy of the stack and drops the result, so a binding doesn&#x27;t add a version to the history of the world. The pager and the editor have their own <code>switch</code> on the key and don&#x27;t look at the bindings.</p>
+<h2 id="windows">Windows</h2>
+<p><code>vga.c</code> keeps a tree of at most eight nodes. A leaf holds a tab, and a split holds two children and says whether they are side by side or stacked. <code>lay</code> walks the tree and gives each visible tab a rectangle in <code>tw[]</code>. <code>apply</code> runs after every change of the tree: it lays out, sets the size of each tab with <code>set_size</code>, and paints the screen again with the title lines and the dividers. A tab that is not in a window gets the full 80 by 24 back.</p>
+<p>The text buffer of a tab is always 80 by 24 cells with a row length of 80, and <code>term.w</code> and <code>term.h</code> are the size that the tab sees. <code>vga_put</code> ignores cells outside it, <code>kputc</code> wraps at <code>w</code> and scrolls at <code>h</code>, and <code>hwcell</code> turns a cell of a tab into the index in video memory, or -1 when the tab is not visible or the cell is outside its window. When a window gets smaller and the cursor would fall outside it, <code>set_size</code> moves the rows up so the cursor stays on the screen. It also queues <code>K_REDRAW</code> for a tab that waits for a key, so a program that lays itself out from <code>term_w()</code> and <code>term_h()</code> draws again at once.</p>
+<p>The mouse events come in screen cells. <code>mouse.c</code> finds the window under the pointer with <code>win_at</code>, focuses it on a click, and gives the tab coordinates relative to its window.</p>
+<h2 id="phi">phi</h2>
+<p><code>phi.c</code> keeps the tree in the heap. A node has a name of up to 31 characters, a flag for a set or a value, a flag for read only, and for a value its length and a pointer to the bytes. The children of a set are a linked list kept in order of name. <code>phi_init</code> makes the read only sets <code>/doc</code> and <code>/pictures</code> from the pointers that <code>doc_page_at</code> and <code>pic_at</code> give, so those values take no heap, and then loads the saved text from slot 5.</p>
+<p>The saved text is a line <code>S path</code> for each set and <code>A path length</code> followed by that many bytes and a line break for each value, with the read only sets left out. <code>phi_dump</code> writes it in one pass and <code>load_text</code> reads it with the same functions that the words use, with saving turned off while it runs. The slot is 1024 sectors, so the text can&#x27;t be longer than 512 KiB less a sector, and <code>STORE_MAX</code> keeps the values under 480 KiB to leave room for the paths. The save runs after every change and rewrites the whole slot.</p>
+<h2 id="lessons">Lessons</h2>
+<p>The lessons of <code>learn</code> are the list <code>lessons</code> in <code>root/80-learn.om</code>. Each entry is a title, a text of lines that start with two spaces and are separated by <code>\n</code>, and a line to run, which may be empty. A lesson that needs a key that only the prompt of a tab has, such as M-x, says so in its text, since the prompt of the lessons is read with <code>ask</code>.</p>
+<h2 id="how-the-kernel-starts">How the kernel starts</h2>
+<ol>
+<li>GRUB on the ISO, or the <a href="boot.html">bootloader</a> of an installed disk, loads the kernel at 1 MiB and jumps to it in 32-bit protected mode.</li>
+<li><code>boot/boot.asm</code> identity-maps the first 4 GiB with 2 MiB pages, turns on long mode and calls <code>kmain</code>.</li>
+<li><code>kmain</code> copies <code>.data</code> aside so that <code>install</code> can write a clean kernel, then brings up VGA, the CPU tables and the PICs, and reads the Multiboot information.</li>
+<li>The heap is set up after the kernel, up to 64 MiB. Then the scheduler and persistence, which reads the state header of an installed drive.</li>
+<li>Every built-in is registered, and root is built from the units linked into the kernel, or from slot 0 of the disk when it exists and builds.</li>
+<li>Four tasks start, one per tab. The PIT is set to 100 Hz, the keyboard is enabled and interrupts are turned on. <code>kmain</code> becomes the idle task.</li>
+</ol>
+<p>Each tab then loads its saved world, tab 1 runs <code>startup</code>, and all four wait at a prompt.</p>
+<h2 id="the-kernel-files">The kernel files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Holds</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main.c</code></td>
+<td><code>kmain</code>, the start order above</td>
+<td></td>
+</tr>
+<tr>
+<td><code>cpu.c</code></td>
+<td>IDT, PICs, PIT, interrupt and fault handlers</td>
+<td><a href="interrupts.html">interrupts</a></td>
+</tr>
+<tr>
+<td><code>sched.c</code></td>
+<td>the four tab tasks and the scheduler</td>
+<td><a href="scheduler.html">scheduler</a></td>
+</tr>
+<tr>
+<td><code>mem.c</code></td>
+<td>the heap, one first-fit allocator</td>
+<td><a href="memory.html">memory</a></td>
+</tr>
+<tr>
+<td><code>vga.c</code>, <code>font.c</code></td>
+<td>text mode, a screen buffer per tab, the window tree, tab bar, palette, the pointer</td>
+<td><a href="screen.html">screen</a>, <a href="tabs.html">tabs</a></td>
+</tr>
+<tr>
+<td><code>kbd.c</code>, <code>mouse.c</code></td>
+<td>PS/2 keyboard and mouse, one key queue per task</td>
+<td><a href="keyboard.html">keyboard</a>, <a href="mouse.html">mouse</a></td>
+</tr>
+<tr>
+<td><code>disk.c</code>, <code>persist.c</code></td>
+<td>ATA PIO, the state header and the slots, phi&#x27;s slot included</td>
+<td><a href="disk-layout.html">disk layout</a>, <a href="saving.html">saving</a></td>
+</tr>
+<tr>
+<td><code>omega.c</code>, <code>words.c</code></td>
+<td>the language and the core words</td>
+<td><a href="language.html">language</a></td>
+</tr>
+<tr>
+<td><code>hw.c</code></td>
+<td>the machine words: memory, ports, PCI, screen, time</td>
+<td><a href="machine.html">machine</a></td>
+</tr>
+<tr>
+<td><code>gfx.c</code>, <code>img.c</code></td>
+<td>graphics mode in 24-bit colour, bitmaps and the JPEG decoder</td>
+<td><a href="screen.html">screen</a>, <a href="pictures.html">pictures</a></td>
+</tr>
+<tr>
+<td><code>big.c</code>, <code>ord.c</code></td>
+<td>bignums, ordinals, cardinals</td>
+<td><a href="numbers.html">numbers</a>, <a href="ordinals.html">ordinals</a></td>
+</tr>
+<tr>
+<td><code>root.c</code></td>
+<td>root units, rebuilding, <code>open</code> and <code>unit</code></td>
+<td><a href="root.html">root</a></td>
+</tr>
+<tr>
+<td><code>jit.c</code>, <code>dis.c</code></td>
+<td>the JIT and the disassembler</td>
+<td><a href="jit.html">jit</a>, <a href="dis.html">dis</a></td>
+</tr>
+<tr>
+<td><code>help.c</code>, <code>doc.c</code></td>
+<td>the help table, the docs check, the page viewer</td>
+<td><a href="help.html">help</a></td>
+</tr>
+<tr>
+<td><code>scrawl.c</code></td>
+<td>the editor</td>
+<td><a href="scrawl.html">scrawl</a></td>
+</tr>
+<tr>
+<td><code>line.c</code>, <code>keys.c</code></td>
+<td>the line editor with its commands, key names, <code>bind</code> and <code>describe-key</code></td>
+<td><a href="keys.html">keys</a>, <a href="prompt.html">prompt</a></td>
+</tr>
+<tr>
+<td><code>phi.c</code></td>
+<td>the tree of sets, its save format and <code>dired</code></td>
+<td><a href="phi.html">phi</a></td>
+</tr>
+<tr>
+<td><code>calc.c</code>, <code>sysinfo.c</code>, <code>lib.c</code></td>
+<td><code>calc</code>, <code>sys-c</code>, string functions and <code>kprintf</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>To read the code, start with <code>kernel/main.c</code> and then follow <code>eval_line</code> in <code>kernel/omega.c</code>, which contains the language.</p>
+<p>Everything runs in ring 0 in one address space. A fault in a tab restarts that tab and leaves the others running. A fault in the kernel itself panics. Shared state such as the heap, the screen buffers and the devices is touched with interrupts off (<code>irq_save</code> and <code>irq_restore</code>), and interrupt handlers never allocate or yield.</p>
+<h2 id="checklist-for-kernel-changes">Checklist for kernel changes</h2>
+<ol>
+<li>Run <code>make host</code> and feed the affected words through <code>build/host</code>. Run <code>printf &#x27;@docs\n&#x27; | build/host</code> and expect <code>0 problems</code>. Remember that <code>kernel/cpu.c</code>, <code>kbd.c</code>, <code>disk.c</code>, <code>persist.c</code>, <code>font.c</code>, <code>main.c</code> and the assembly are not part of the host build (<code>HOSTSRC</code> in the <code>Makefile</code>), so a change in them gets no coverage from this step.</li>
+<li>Run <code>make stress</code> for any change to the allocator, the shell, the garbage collector, a new built-in, or anything that holds a pointer across an allocation. A freed block is filled with <code>0xDD</code>, so a dangling use shows up as that pattern.</li>
+<li>Build the real kernel with <code>make</code> and check that it still links with <code>-Wall -Wextra</code> clean. The flags forbid SSE (<code>-mgeneral-regs-only</code>) and the red zone (<code>-mno-red-zone</code>). Do not add floating point, <code>memcpy</code> variants that use vector registers, or code that assumes a red zone.</li>
+<li>Boot with <code>make run</code> (<code>qemu -kernel build/subverge.elf -m 256M</code>). Check that all four tabs start, that F1 to F4 and Alt+1 to 4 switch, and that the tab bar clock advances.</li>
+<li>Boot the ISO with <code>make run-iso</code>. A change to <code>boot/boot.asm</code>, to <code>linker.ld</code> or to the Multiboot header is visible here and in step 4 but a mistake in the header can pass one and fail the other. Check that <code>sys</code> shows the expected memory size.</li>
+<li>If the change touches boot, <code>persist.c</code>, <code>disk.c</code>, the linker script or the size of <code>.data</code>, run <code>make run-install</code>, install to the drive, then boot it with <code>make run-disk</code>. Verify that the saved definitions, theme and logo return in the right tabs. The kernel has to fit in its 2 MiB slot, which <code>install</code> checks.</li>
+<li>Run the scripted tests that apply. <code>make jit-test</code> boots the kernel under <code>build/qdrive</code> and drives it with <code>test/jit.qd</code>. The scripts in <code>test/*.qd</code> (<code>boot.qd</code>, <code>iso.qd</code>, <code>install.qd</code>, <code>isoinst.qd</code>, <code>gfx.qd</code>, <code>startup.qd</code>, <code>win.qd</code>, <code>help.qd</code>) cover the boot paths, graphics mode, installation and the pager.</li>
+<li>For every function you add that runs in an interrupt handler, confirm it does not call <code>kmalloc</code>, <code>kfree</code>, <code>yield</code>, or anything that blocks, and that it touches shared state only through <code>volatile</code> single-writer rings or inside <code>irq_save</code>.</li>
+<li>For every function that touches state shared between tasks, between a task and an IRQ, or the screen, confirm which side writes and whether an <code>irq_save</code> / <code>irq_restore</code> pair is needed. Keep the sections short: tick accounting stops while interrupts are off, and <code>disk_rw</code> already keeps them off for up to 128 sectors.</li>
+<li>Use <code>irq_restore(flags)</code> with the value returned by <code>irq_save</code>, never an unconditional <code>sti</code>. Callers can already be inside an interrupt-off section.</li>
+<li>Anything stored per tab belongs in <code>struct task</code> or <code>struct term</code>. Check what <code>task_fault</code> does to it: the key ring, <code>brkflag</code>, <code>mouse_on</code> and the shell state <code>om</code> survive a restart, <code>wait_key</code> and <code>wake_at</code> do not. A new field that must be reset on restart has to be reset in <code>task_fault</code>.</li>
+<li>Output code must go through <code>vga_put</code> or <code>kputc</code> so it lands in the calling tab&#x27;s buffer. Use <code>hw_put</code> only for the tab bar, panic and pointer, which are not part of any tab. Test with output from a background tab and confirm the <code>*</code> marker appears and the buffer is replayed by <code>switch_tab</code>.</li>
+<li>Any change that writes hardware cells while the pointer may sit on them must keep the swap in step: either go through <code>vga_put</code>, or restore the cell before writing and call <code>mouse_redraw</code> after. Test with the pointer over the changed area, including row 0.</li>
+<li>Test in both text and graphics mode. In graphics mode (<code>gfx</code> in QEMU started with <code>-vga std</code>) <code>hw_put</code> does nothing and <code>vga_put</code> updates buffers only, so code that must be visible in both modes needs a branch on <code>gfx_on</code>. Switch tabs while in graphics mode and check that <code>gfx_leave</code> restores the font (the omega and aleph glyphs) and the theme colours.</li>
+<li>For a change to <code>on_key</code>, the tables or the modifier handling, test in QEMU: Shift, Caps, Ctrl-C during a loop, Shift-Tab, the arrow keys, and the keypad Enter. The host harness does not run <code>on_key</code>.</li>
+<li>For a change to <code>mouse.c</code> or the pointer code, test in QEMU with a graphical window, with and without a wheel, in the pager and on the tab bar.</li>
+<li>Run the change with a small <code>-m</code> value and a large one. The heap is the smaller of the RAM above <code>_kernel_end</code> and 64 MiB, and each tab takes 256 KiB of stack plus the world, so small configurations run out of memory first and end in <code>ran out of memory</code>.</li>
+<li>Do not change <code>NTABS</code>, <code>VW</code>, <code>VH</code>, <code>SLOT_SECTORS</code>, <code>LBA_*</code> or the <code>struct state_header</code> layout without updating every user: the tab bar layout, <code>tab_at</code>, the slot count, the <code>_Static_assert</code> on the header size, <code>install-to</code>, and the stage2 header offsets in <code>boot/stage2.asm</code>. A disk written with one layout is read with another by <code>persist_init</code> without any version check beyond the <code>SVSTATE1</code> magic.</li>
+</ol>
+<h2 id="the-interpreter">The interpreter</h2>
+<p>Every value is a 24-byte cell <code>V</code> (<code>kernel/omega.h</code>): a tag and either a number or a pointer to an object. Quotes, strings, bignums, worlds and the like are objects on the tab&#x27;s collected heap. Names are interned strings, and a built-in is the function stored on its name.</p>
+<p><code>eval_line</code> runs one line of input as a transaction. It works on a copy of the stack and the dictionary and stores the result as the new world, and keeps the old one for <code>back</code>, only when the line raised no error. A failed line changes nothing. Effects outside the world, such as ports, <code>poke</code> and drawing, are not undone (<a href="transactions.html">transactions</a>).</p>
+<p>A quote that has run twice is compiled to x86-64 by <code>kernel/jit.c</code>, and <code>define</code> and a root rebuild bump <code>jit_version</code> so that stale code is recompiled (<a href="jit.html">jit</a>).</p>
+<h2 id="the-garbage-collector">The garbage collector</h2>
+<h3 id="roots-and-reachability">Roots and reachability</h3>
+<p>The collector is a stop-the-world mark and sweep over the objects in <code>W-&gt;objs</code> of the current tab. Each tab collects its own objects. <code>gc()</code> marks from these roots:</p>
+<table>
+<thead>
+<tr>
+<th>Root</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>W-&gt;cur</code>, every entry of <code>hist</code> and <code>fut</code></td>
+<td>Committed worlds (stack quote and dictionary).</td>
+</tr>
+<tr>
+<td><code>W-&gt;stk[0 .. sp-1]</code></td>
+<td>The live data stack. Cells above <code>sp</code> are not roots.</td>
+</tr>
+<tr>
+<td><code>W-&gt;loc[0 .. nloc-1]</code></td>
+<td>Live locals.</td>
+</tr>
+<tr>
+<td><code>W-&gt;keep[0 .. min(nkeep,256)-1]</code></td>
+<td>Values held by built-ins.</td>
+</tr>
+<tr>
+<td><code>W-&gt;dict</code></td>
+<td>The working dictionary of the line.</td>
+</tr>
+<tr>
+<td><code>W-&gt;linequote</code></td>
+<td>The quote being run.</td>
+</tr>
+</tbody>
+</table>
+<p>Pinned objects are skipped by <code>mark</code>: <code>mark</code> returns at once for an object whose <code>pinned</code> field is set, and does not look at its children. The objects reachable from <code>root_dict</code> are pinned because <code>rebuild</code> in <code>kernel/root.c</code> creates them with <code>W-&gt;pin = 1</code>. The same holds for the interned strings and for the two ordinal atoms made in <code>ord_init</code>. A pinned object may therefore only point to other pinned objects.</p>
+<p><code>mark</code> is iterative along <code>bind.next</code> chains and recursive through quote items and ordinal exponents.</p>
+<h3 id="safe-points">Safe points</h3>
+<p>A collection runs only inside <code>gc_point</code>, and <code>gc_point</code> is called from three places: the top of every iteration of the <code>run</code> loop, <code>h_tick</code> in compiled loops, and <code>omega_main</code>, which calls <code>gc()</code> directly before every prompt. <code>gc_point</code> does nothing while <code>W-&gt;pin</code> is set or while <code>nkeep</code> is above 256. Otherwise it collects when <code>W-&gt;nobjs &gt; W-&gt;gc_threshold</code>. After a collection <code>gc_threshold</code> is <code>max(8192, 2 * nobjs)</code>. Its initial value is 0, so the first safe point of a new tab collects.</p>
+<h3 id="mark-and-sweep-order">Mark and sweep order</h3>
+<ol>
+<li>Mark from the roots listed above.</li>
+<li>Walk <code>W-&gt;objs</code>. A marked object has its mark cleared and stays. An unmarked object is unlinked. If it is a quote, <code>jit_forget</code> releases its machine code. Then <code>kfree</code> frees it and <code>nobjs</code> is decremented.</li>
+<li>Increment <code>ngc</code> and set the new threshold.</li>
+</ol>
+<h3 id="gc_stress">GC_STRESS</h3>
+<p><code>make stress</code> builds <code>build/stress</code> with <code>-DGC_STRESS</code>. In this build <code>gc_point</code> collects at every call regardless of the threshold, and <code>kfree</code> in <code>kernel/mem.c</code> overwrites each freed block with the byte 0xDD. A built-in that keeps a pointer to a freed object then reads 0xDD bytes, which show up as crashes or visibly wrong values. Run every new built-in that calls back into omega code through <code>build/stress</code>. Compiled loops reach <code>gc_point</code> through <code>h_tick</code>, so the stress build exercises compiled code only inside loops.</p>
+<pre><code>printf &#x27;1 2 3 3 list [ dup * ] map .\n&#x27; | build/stress
+</code></pre>
+<h3 id="rules-for-built-ins">Rules for built-ins</h3>
+<p>A collection cannot happen while a built-in runs unless the built-in calls into omega code. The calls that reach a safe point are <code>call</code>, <code>run</code>, <code>exec_word</code>, <code>exec_item</code> and <code>eval_line</code>. This gives these rules:</p>
+<ol>
+<li>A built-in that never calls back can hold raw pointers to any value freely, including newly allocated ones. It needs no <code>keep</code>.</li>
+<li>A built-in that calls back must <code>keep(v)</code> every value that it will use after the call and that is no longer on the stack. A value it popped is not a root. <code>unkeep(n)</code> removes the last <code>n</code> entries and must run on every path, including after an error.</li>
+<li><code>call(v)</code> keeps <code>v</code> itself while it runs. The quote argument of <code>times</code>, <code>for</code>, <code>while</code>, <code>each</code>, <code>map</code> and <code>filter</code> is kept by the built-in for the whole loop, because it is called again on each iteration.</li>
+<li>A result is safe once it has been pushed. Build it before the call that needs it only if it is kept.</li>
+<li>A built-in must not store a <code>V</code> in a C static or in malloc&#x27;d memory unless the object is pinned. The root units keep <code>str *</code> names of interned strings, which are pinned.</li>
+<li><code>keep</code> stores into a 256-entry array and counts beyond it without storing. The collector refuses to run while the count is above 256, so deep recursion through built-ins that keep values degrades to no collection and does not corrupt anything.</li>
+<li>Do not read <code>W-&gt;stk</code> above <code>sp</code>, and treat pointers into it as invalid after any call back, since a nested call can move <code>sp</code> and overwrite those cells.</li>
+</ol>
+<h2 id="built-ins">Built-ins</h2>
+<h3 id="table-type-and-registration">Table type and registration</h3>
+<pre><code>struct builtin { const char *name; void (*fn)(void); };
+</code></pre>
+<p>Each module ends with a <code>const struct builtin</code> array terminated by <code>{ NULL, NULL }</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core_words</code></td>
+<td><code>kernel/words.c</code></td>
+<td>Stack, arithmetic, logic, flow, lists, text, output, names, <code>back</code>, <code>redo</code>, <code>eval</code>, <code>try</code>, <code>fail</code>, <code>trace</code>, <code>edit</code>, <code>calc</code>.</td>
+</tr>
+<tr>
+<td><code>hw_words</code></td>
+<td><code>kernel/hw.c</code></td>
+<td>Memory and ports, cpu, pci, memory map, clocks, the screen, keys, themes, logos, <code>reboot</code>, <code>halt</code>.</td>
+</tr>
+<tr>
+<td><code>gfx_words</code></td>
+<td><code>kernel/gfx.c</code></td>
+<td><code>gfx</code>, <code>gfx-off</code>, <code>dot</code>, <code>box</code>, <code>window</code>.</td>
+</tr>
+<tr>
+<td><code>img_words</code></td>
+<td><code>kernel/img.c</code></td>
+<td>Bitmaps, <code>picture</code> and <code>pictures</code>.</td>
+</tr>
+<tr>
+<td><code>ord_words</code></td>
+<td><code>kernel/ord.c</code></td>
+<td><code>omega</code>, <code>epsilon0</code>, <code>omega1</code>, <code>aleph0</code>, <code>aleph1</code>, <code>aleph</code>, <code>continuum</code>, <code>card</code>, <code>ordinal?</code>.</td>
+</tr>
+<tr>
+<td><code>root_words</code></td>
+<td><code>kernel/root.c</code></td>
+<td><code>root</code>, <code>open</code>, <code>unit</code>, <code>src</code>.</td>
+</tr>
+<tr>
+<td><code>persist_words</code></td>
+<td><code>kernel/persist.c</code></td>
+<td><code>drives</code>, <code>home</code>, <code>ask</code>, <code>install-to</code>, <code>save</code>.</td>
+</tr>
+<tr>
+<td><code>jit_words</code></td>
+<td><code>kernel/jit.c</code></td>
+<td><code>jit</code>, <code>jit-on</code>, <code>jit-off</code>, <code>compile</code>, <code>addr</code>.</td>
+</tr>
+<tr>
+<td><code>dis_words</code></td>
+<td><code>kernel/dis.c</code></td>
+<td><code>dis</code>, <code>disr</code>.</td>
+</tr>
+<tr>
+<td><code>help_words</code></td>
+<td><code>kernel/help.c</code></td>
+<td><code>help</code>, <code>apropos</code>.</td>
+</tr>
+<tr>
+<td><code>doc_words</code></td>
+<td><code>kernel/doc.c</code></td>
+<td><code>doc</code>, <code>docs</code>.</td>
+</tr>
+<tr>
+<td><code>mouse_words</code></td>
+<td><code>kernel/mouse.c</code></td>
+<td><code>mouse</code>, <code>mouse?</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The tables are declared <code>extern</code> in <code>kernel/omega.h</code> and registered by <code>kmain</code> in this order: core, hw, ord, root, persist, jit, dis, help, doc, mouse. <code>test/host.c</code> registers the same tables with its own <code>persist_words</code> stub. A new module needs an <code>extern</code> declaration, a <code>register_words</code> call in both places, an entry in <code>HOSTSRC</code> in the <code>Makefile</code> if it should be part of the host build, and an entry in the <code>sets[]</code> array of <code>help_check</code>.</p>
+<p>Words written in omega itself live in <code>root/*.om</code> (see Root units below).</p>
+<h3 id="helpers">Helpers</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>need(n, &quot;w&quot;)</code></td>
+<td>Returns 1 if the stack has at least <code>n</code> values. Otherwise fails with <code>w needs more values on the stack</code> and returns 0.</td>
+</tr>
+<tr>
+<td><code>pop()</code></td>
+<td>Removes and returns the top cell. It does not check; call <code>need</code> first.</td>
+</tr>
+<tr>
+<td><code>push(v)</code></td>
+<td>Does nothing if an error is pending. Fails on <code>T_NONE</code> (<code>that value can&#x27;t go on the stack</code>) and on a full stack.</td>
+</tr>
+<tr>
+<td><code>want(v, t, &quot;w&quot;)</code></td>
+<td>Returns 1 if <code>v.t == t</code>. Otherwise fails with <code>w needs a number</code>, <code>a string</code>, <code>a quote</code> or <code>a &#x27;name</code>.</td>
+</tr>
+<tr>
+<td><code>pop_int(&quot;w&quot;, &amp;n)</code></td>
+<td><code>need</code>, pop, and <code>want(T_INT)</code>. A bignum fails with <code>w needs a number that fits in 64 bits</code>.</td>
+</tr>
+<tr>
+<td><code>pop_str(&quot;w&quot;, &amp;s)</code></td>
+<td><code>need</code>, pop, and <code>want(T_STR)</code>.</td>
+</tr>
+<tr>
+<td><code>brk()</code></td>
+<td>Tests and clears the Ctrl-C flag and fails with <code>interrupted</code>. Long loops in built-ins call it on each iteration.</td>
+</tr>
+<tr>
+<td><code>fail(fmt, a)</code></td>
+<td>Records the first error. <code>fmt</code> takes exactly one <code>%s</code>, filled from <code>a</code>.</td>
+</tr>
+<tr>
+<td><code>keep(v)</code>, <code>unkeep(n)</code></td>
+<td>Collector roots for the duration of a call back.</td>
+</tr>
+</tbody>
+</table>
+<p>Arguments are popped from the top, so the last argument comes first. <code>b_poke</code> in <code>kernel/hw.c</code> is written <code>pop_int(&quot;poke&quot;, &amp;a) &amp;&amp; pop_int(&quot;poke&quot;, &amp;v)</code> and so reads the stack picture <code>v a --</code>. Chaining the calls with <code>&amp;&amp;</code> or <code>||</code> stops at the first failure.</p>
+<h3 id="error-message-conventions">Error message conventions</h3>
+<p>Messages are one lowercase sentence without a final period. They name the word that failed at the start (<code>peek needs a number</code>) or state the problem in plain terms (<code>division by zero</code>, <code>that range is too big</code>, <code>NAME isn&#x27;t defined</code>). Because <code>fail</code> formats with a single <code>%s</code>, a message without an argument is written with a trailing <code>%s</code> and an empty string:</p>
+<pre><code>fail(&quot;pick needs 0 or more%s&quot;, &quot;&quot;);
+</code></pre>
+<p>A message that has to carry a value passes it as the argument: <code>fail(&quot;%s isn&#x27;t defined&quot;, s-&gt;s)</code>. A message with several parts is formatted into a local buffer first and passed through <code>fail(&quot;%s&quot;, m)</code>, as <code>want</code> and <code>pop_int</code> do. The message buffer holds 95 characters. A word that can fail for several reasons gives each its own message. The messages are visible to users, so the same phrases appear in <a href="errors.html">errors</a>.</p>
+<h3 id="allocation-in-built-ins">Allocation in built-ins</h3>
+<p><code>gnew</code> and <code>quote_new</code> can return NULL. A built-in that writes into the object must test for NULL first, as <code>append</code> does with <code>quote_new</code>. A built-in that only pushes the result may leave the test out; the error is already recorded and the push is a no-op.</p>
+<p><code>kmalloc_try</code> for temporary buffers must be paired with <code>kfree</code> on every path. <code>join</code> and <code>str</code> show the pattern: allocate, build, push a new <code>str</code> copy, free. Do not leave <code>kmalloc</code>&#x27;d memory reachable only from a C local across a call back.</p>
+<h3 id="a-worked-example">A worked example</h3>
+<p>The word <code>clamp</code> takes <code>n lo hi</code> and leaves <code>n</code> limited to the range. It belongs to the <code>math</code> group.</p>
+<p>Add the function above <code>b_bnot</code> in <code>kernel/words.c</code>:</p>
+<pre><code>static void b_clamp(void) {
+    i64 n, lo, hi;
+    if (!pop_int(&quot;clamp&quot;, &amp;hi) || !pop_int(&quot;clamp&quot;, &amp;lo) || !pop_int(&quot;clamp&quot;, &amp;n)) return;
+    if (lo &gt; hi) { fail(&quot;clamp needs the low end first%s&quot;, &quot;&quot;); return; }
+    push(I(n &lt; lo ? lo : n &gt; hi ? hi : n));
+}
+</code></pre>
+<p>Add it to <code>core_words</code>:</p>
+<pre><code>{ &quot;clamp&quot;, b_clamp }, { &quot;neg&quot;, b_neg },
+</code></pre>
+<p>Add the help entry to <code>docs[]</code> in <code>kernel/help.c</code>, in the <code>math</code> block:</p>
+<pre><code>{ &quot;math&quot;, &quot;clamp&quot;, &quot;n lo hi -- m&quot;, &quot;Limits n to the range lo to hi.&quot;, &quot;15 0 10 clamp   gives 10&quot; },
+</code></pre>
+<p>Build the host harness and try it:</p>
+<pre><code>make host
+printf &#x27;15 0 10 clamp\n-3 0 10 clamp\n5 10 0 clamp\n@docs\n&#x27; | build/host
+</code></pre>
+<p>The harness prints the stack after each line. The expected results are <code>10</code>, then <code>10 0</code>, then an error line for the third input that leaves the stack at <code>10 0</code>, and finally <code>0 problems</code> from <code>@docs</code>. The failed line shows the transaction at work: <code>5</code> was popped before the error, but the committed stack is unchanged.</p>
+<p>The remaining steps:</p>
+<ol>
+<li>If the word is a good place for a link, mention it on a page in <code>doc/*.md</code>. Run <code>make doccheck</code> to confirm the links resolve.</li>
+<li>A line in a help page that consists only of known words becomes a link that runs it, so an example that uses the new word gets its link without any markup.</li>
+<li>Run <code>make stress</code> and feed the same lines to <code>build/stress</code> if the word calls back into omega code.</li>
+</ol>
+<h3 id="the-docs-check">The docs check</h3>
+<p><code>help_check</code> in <code>kernel/help.c</code> is compiled only in the host build. <code>test/host.c</code> calls it for the input line <code>@docs</code> and prints the number of problems. It reports:</p>
+<table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>undocumented builtin: NAME</code></td>
+<td>A registered built-in without a <code>docs[]</code> entry.</td>
+</tr>
+<tr>
+<td><code>undocumented root word: NAME</code></td>
+<td>A non-tombstone binding in <code>root_dict</code> without an entry.</td>
+</tr>
+<tr>
+<td><code>doc for a word that doesn&#x27;t exist: NAME</code></td>
+<td>An entry (outside group <code>syntax</code>) naming something that is neither a built-in nor a root word.</td>
+</tr>
+<tr>
+<td><code>bad group on NAME</code></td>
+<td>The group is not in <code>groups[]</code>.</td>
+</tr>
+<tr>
+<td><code>text too long: NAME</code></td>
+<td><code>text</code> longer than 52 characters.</td>
+</tr>
+<tr>
+<td><code>effect too long: NAME</code></td>
+<td><code>effect</code> longer than 15 characters.</td>
+</tr>
+</tbody>
+</table>
+<p>Run <code>@docs</code> after every change that adds, renames or removes a word. The output must be <code>0 problems</code>.</p>
+<h3 id="what-the-host-harness-cannot-run">What the host harness cannot run</h3>
+<p><code>build/host</code> links the real omega, bignum, ordinal, root, line, help, doc and JIT code with a stub kernel. Words that touch hardware dereference raw addresses or execute privileged instructions. <code>peek</code>, <code>time</code> and similar words terminate the harness with a core dump. Test them under QEMU. <code>ticks</code> returns a counter that advances only when the harness yields.</p>
+<h2 id="checklist-for-interpreter-changes">Checklist for interpreter changes</h2>
+<ol>
+<li>Read the fields of <code>V</code>, <code>quote</code> and <code>struct omega</code> that the change touches, and check <code>kernel/jit.c</code> for a hard-coded layout: <code>VSZ</code>, <code>copy_v</code>, <code>push_int_rax</code>, the <code>imul r12,r14,24</code> bytes in <code>sync_in</code>, and every <code>offsetof(struct omega, ...)</code>.</li>
+<li>A new tag needs entries in <code>want</code>&#x27;s table if it can appear in an error, in <code>type</code>&#x27;s <code>names[]</code> array, in <code>repr</code>, in <code>ord_source</code>/<code>srcmode</code> handling if it must survive saving, in the <code>lit</code> cases of <code>compile_seq</code>, and in <code>markv</code> if it carries a pointer.</li>
+<li>A new object kind needs a branch in <code>mark</code> for its children and a size computation in its constructor. Allocate it with <code>gnew</code> and test the result for NULL.</li>
+<li>Every built-in must call <code>need</code> or a <code>pop_*</code> helper before <code>pop</code>, report errors with <code>fail</code> and return, and leave the stack in a usable state. A line that fails is discarded, so a partial effect on the stack is not a correctness problem, but a partial effect outside the stack is.</li>
+<li>A built-in that calls <code>call</code>, <code>run</code>, <code>exec_word</code> or <code>eval_line</code> must <code>keep</code> every value it still needs and <code>unkeep</code> on every path. Check it with <code>make stress</code>.</li>
+<li>State that is not on the stack or in the dictionary is not rolled back by a failed line or by <code>back</code>. Keep new state either in the stack and dictionary, or document that it is outside the transaction.</li>
+<li>A new built-in needs an entry in a <code>const struct builtin</code> table, an entry in <code>docs[]</code> in <code>kernel/help.c</code> within the 52 and 15 character limits, and a clean <code>@docs</code> run. A new module table also needs the <code>extern</code> declaration, <code>register_words</code> calls in <code>kernel/main.c</code> and <code>test/host.c</code>, an entry in <code>HOSTSRC</code>, and an entry in <code>sets[]</code> of <code>help_check</code>.</li>
+<li>A change to the meaning of an existing built-in name needs a check of the compiler: if <code>inline_word</code> or the control forms in <code>compile_seq</code> handle that name, update the fast path, or the slow path will disagree with it. Compare results with <code>jit-off</code> and <code>jit-on</code>.</li>
+<li>A change that makes <code>define</code> or <code>rebuild</code> replace words must keep the <code>jit_version</code> bump, otherwise compiled quotes keep calling the old behaviour.</li>
+<li>A change to the parser needs a matching change in <code>repr</code> and in <code>omega_source</code>, because saved worlds are text that goes back through <code>parse</code>. Run <code>@roundtrip</code> in the host harness and check that it prints <code>MATCHES</code>.</li>
+<li>A change to <code>eval_line</code> has to keep three properties: a failed line commits nothing, <code>back</code> and <code>redo</code> discard the rest of the line, and a line that changes nothing adds no history entry. Test each with a short input in <code>build/host</code>.</li>
+<li>Limits that appear in messages (<code>DEPTH</code>, <code>STK</code>, <code>NLOC</code>, <code>HIST</code>, 256 items, 32 nesting levels, <code>MAXL</code>) also appear in pages under <code>doc/</code> and in the site pages. Update them together (<a href="limits.html">limits</a>).</li>
+<li>The kernel is built with <code>-mgeneral-regs-only</code>: C code in the kernel cannot use floating point or vector registers. The host build has no such restriction, so a change that compiles in <code>build/host</code> can still fail in <code>make</code>.</li>
+<li>Run, in order: <code>make host</code> and a set of inputs through <code>build/host</code>, <code>make stress</code> with the same inputs, <code>make doccheck</code>, <code>make</code> for the kernel, and a QEMU session (<code>make run</code>, or <code>make jit-test</code>) for any change that involves hardware words, the compiler, the keyboard or the screen.</li>
+<li>Words that touch hardware (<code>peek</code>, <code>time</code>, ports, the screen words) crash the host harness. Their tests belong in QEMU.</li>
+</ol>
+<h2 id="root-units">Root units</h2>
+<p>Root is the part of the system written in omega. It holds every utility, game and demo that is not a C builtin, and the strings the help system and the tour are made from. The source is the files <code>root/*.om</code>. A running system holds root as a list of units, each with its source text and the names it defines, and as one dictionary (<code>root_dict</code>, declared in <code>kernel/omega.h</code>) that every tab searches after its own definitions. The code is <code>kernel/root.c</code>. The user-facing description is in <a href="root.html">root</a> and <a href="units.html">units</a>. This section describes what the code does.</p>
+<h3 id="from-files-to-a-blob">From files to a blob</h3>
+<p><code>build/rootfs.bin</code> is made by one rule in the Makefile:</p>
+<pre><code>build/rootfs.bin: $(sort $(wildcard root/*.om)) | build
+    cat $^ &gt; $@
+</code></pre>
+<p><code>build/rootfs.o</code> is <code>ld -r -b binary</code> of that file. The linker provides the symbols <code>_binary_build_rootfs_bin_start</code> and <code>_binary_build_rootfs_bin_end</code>, which <code>kernel/root.c</code> declares as <code>extern const char[]</code>. The host harness (<code>make host</code>) links the same <code>build/rootfs.o</code>.</p>
+<p>Consequences of the rule:</p>
+<ul>
+<li>The files are concatenated in the order of <code>sort</code>, which is the byte order of the file names. The numeric prefixes (<code>00-</code>, <code>05-</code>, <code>10-</code>, up to <code>80-</code>) exist to fix this order. A new file is picked up without a change to the Makefile, and it must have a prefix that puts it where it belongs.</li>
+<li><code>cat</code> adds nothing between the files. Every file must end with a newline, or the first line of the next file (its <code>#&gt;&gt;</code> header) is joined to the last line of the previous unit and the header is not recognised.</li>
+<li>The file name has no meaning to the kernel. The unit name comes from the header line inside the file.</li>
+<li>The blob is read-only data in the kernel image. A running system copies each unit into the kernel heap (<code>kmalloc</code>) when it splits the blob.</li>
+</ul>
+<h3 id="unit-header-lines">Unit header lines</h3>
+<p>A unit starts at a line that begins with <code>#&gt;&gt; </code> (hash, two greater-than signs, one space) and has at least one character after it. <code>split_units()</code> in <code>kernel/root.c</code> tests <code>eol - p &gt; 4</code> and the four bytes <code>#&gt;&gt; </code>. The rest of the line is the unit name. The text after that line, up to the next header or the end of the blob, is the unit source.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Header prefix</td>
+<td><code>#&gt;&gt; </code> at the start of a line</td>
+<td><code>split_units()</code></td>
+</tr>
+<tr>
+<td>Name length stored</td>
+<td>at most 23 bytes (<code>char name[24]</code>)</td>
+<td><code>struct unit</code></td>
+</tr>
+<tr>
+<td>Name length accepted by <code>unit</code></td>
+<td>1 to 20 characters</td>
+<td><code>b_unit()</code></td>
+</tr>
+<tr>
+<td>Characters accepted by <code>unit</code></td>
+<td><code>a</code> to <code>z</code>, <code>0</code> to <code>9</code> and <code>-</code></td>
+<td><code>b_unit()</code></td>
+</tr>
+<tr>
+<td>Units in root</td>
+<td>at most <code>NUNITS</code>, which is 32</td>
+<td><code>kernel/root.c</code></td>
+</tr>
+<tr>
+<td>Names recorded per unit</td>
+<td>at most <code>UWORDS</code>, which is 96</td>
+<td><code>kernel/root.c</code></td>
+</tr>
+</tbody>
+</table>
+<p>Text before the first header is dropped. A header line inside a unit that is not at the start of a line is ordinary text. When the blob has more than <code>NUNITS</code> headers the rest of it is ignored.</p>
+<p>The units that ship with the system, in build order:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Unit name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00-core.om</code></td>
+<td><code>core</code></td>
+</tr>
+<tr>
+<td><code>05-apps.om</code></td>
+<td><code>apps</code></td>
+</tr>
+<tr>
+<td><code>10-sys.om</code></td>
+<td><code>sys</code></td>
+</tr>
+<tr>
+<td><code>20-top.om</code></td>
+<td><code>top</code></td>
+</tr>
+<tr>
+<td><code>30-inspect.om</code></td>
+<td><code>inspect</code></td>
+</tr>
+<tr>
+<td><code>40-infinity.om</code></td>
+<td><code>infinity</code></td>
+</tr>
+<tr>
+<td><code>50-fun.om</code></td>
+<td><code>fun</code></td>
+</tr>
+<tr>
+<td><code>55-mandel.om</code></td>
+<td><code>mandel</code></td>
+</tr>
+<tr>
+<td><code>56-toys.om</code></td>
+<td><code>toys</code></td>
+</tr>
+<tr>
+<td><code>57-tools.om</code></td>
+<td><code>tools</code></td>
+</tr>
+<tr>
+<td><code>60-install.om</code></td>
+<td><code>install</code></td>
+</tr>
+<tr>
+<td><code>70-dev.om</code></td>
+<td><code>dev</code></td>
+</tr>
+<tr>
+<td><code>80-learn.om</code></td>
+<td><code>learn</code></td>
+</tr>
+</tbody>
+</table>
+<p>The prefix of the file and the name of the unit are independent. Nothing checks that they agree.</p>
+<h3 id="how-root-is-built-at-boot">How root is built at boot</h3>
+<p><code>root_boot()</code> is called once, from the kernel start-up path and from <code>test/host.c</code>, after the builtin tables are registered. It does the following:</p>
+<ol>
+<li>Calls <code>persist_load(0, &amp;len)</code>. Slot 0 of the state area of an installed drive holds the text of root as the user last left it. On the live ISO and in <code>build/host</code> there is no home drive, <code>persist_load</code> returns <code>NULL</code>, and the next step is skipped.</li>
+<li>If a saved root exists, <code>split_units()</code> splits it and <code>rebuild(-1, NULL)</code> builds it. When that succeeds, <code>root_boot()</code> returns. The built-in blob is not consulted.</li>
+<li>If the saved root does not build, <code>boot_err</code> is set to <code>the saved root didn&#x27;t build, using the built-in one</code> and the blob linked into the kernel is split and built instead.</li>
+<li>If the built-in blob does not build either, <code>boot_err</code> holds the error, formatted as <code>unit: message</code>.</li>
+</ol>
+<p><code>root_boot_error()</code> returns <code>boot_err</code> or <code>NULL</code>. Tab 1 reads it in <code>omega_main()</code> (<code>kernel/omega.c</code>): without an error it evaluates <code>&#x27;startup defined? [ startup ] [ sys ] if</code>, and with an error it calls <code>sysinfo()</code> and prints <code>! root: &lt;message&gt;</code> in light red. <code>test/host.c</code> prints <code>ROOT ERROR: &lt;message&gt;</code> after <code>root_boot()</code>. A root that fails to build in the harness therefore shows up at once.</p>
+<p><code>rebuild(which, src)</code> is the only function that builds root. <code>which</code> is the index of the unit whose source is replaced by <code>src</code>, or <code>-1</code> for no replacement. The steps:</p>
+<ol>
+<li>The caller&#x27;s interpreter state is saved: the operand stack (<code>W-&gt;stk</code>, <code>W-&gt;sp</code>), <code>W-&gt;nloc</code>, <code>W-&gt;depth</code>, <code>W-&gt;tracing</code> and the dictionary <code>W-&gt;dict</code>.</li>
+<li><code>W-&gt;pin</code> is set to 1. Objects allocated while it is set are pinned and are never collected, which is how root words and their literals stay alive.</li>
+<li><code>start</code> is chosen. For <code>which</code> of 0 or <code>-1</code> it is 0 and the build begins from an empty dictionary. For a larger <code>which</code> that is not past <code>nafter</code> it is <code>which</code>, and the dictionary starts as <code>after[start - 1]</code>, the dictionary as it was at the end of the previous unit. The units before <code>start</code> are not run again.</li>
+<li>For each unit from <code>start</code> to the last, the interpreter state is cleared (<code>W-&gt;err</code>, <code>W-&gt;sp</code>, <code>W-&gt;nloc</code>, <code>W-&gt;depth</code>, <code>W-&gt;tracing</code> set to 0), the source is parsed with <code>parse_text()</code> (the replacement text for unit <code>which</code>, otherwise <code>units[i].src</code>) and the resulting quote is run with <code>run()</code>. A unit is a program. Each <code>[ ... ] :name</code> in it runs at build time and binds the name.</li>
+<li>If <code>W-&gt;err</code> is set after a unit, the error is formatted as <code>&lt;unit&gt;: &lt;W-&gt;errmsg&gt;</code> into a static 120-byte buffer and the loop stops.</li>
+<li>After each unit the dictionary head is stored in <code>marks[i]</code>, and the names bound by that unit (the bindings between the previous head and the new one, without duplicates, at most <code>UWORDS</code>) are stored in <code>words[i]</code>.</li>
+<li>The saved interpreter state is restored and <code>W-&gt;pin</code> is cleared, on success and on failure alike.</li>
+<li>On failure the function returns the message and changes nothing else. <code>root_dict</code>, <code>units[]</code> and <code>after[]</code> keep their old values.</li>
+<li>On success <code>root_dict</code> is set to the new head. For every binding of the old chain down to the shared tail, <code>jit_release_one()</code> is called. Then <code>jit_sweep()</code> runs and <code>jit_version</code> is incremented, so compiled quotes in all tabs are discarded and compile again when they next run twice (see <a href="jit.html">jit</a>).</li>
+<li>The shadow note is rebuilt (see below), <code>units[i].nwords</code> and <code>units[i].words</code> are updated for the rebuilt units, <code>after[i]</code> is set, and <code>nafter</code> becomes <code>nunits</code>.</li>
+</ol>
+<p>Old root objects are not freed. A tab that copied a quote out of the old root with <code>get</code> keeps a valid object.</p>
+<h3 id="the-words-root-open-unit-and-src">The words <code>root</code>, <code>open</code>, <code>unit</code> and <code>src</code></h3>
+<p><code>root_words[]</code> in <code>kernel/root.c</code> registers four builtins.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>root</code></td>
+<td><code>--</code></td>
+<td>Lists the units: name padded to 10, size in bytes, <code>(draft)</code> if an unsaved edit is held, then the names the unit defines. The names are printed oldest first and the list is cut after two lines with <code>..</code>. The line ends with <code>Edit a unit with &#x27;word open, where word is any name in it.</code></td>
+</tr>
+<tr>
+<td><code>open</code></td>
+<td><code>&#x27;name --</code></td>
+<td>Opens the unit in the editor <code>scrawl</code> with the title <code>root/&lt;unit&gt;</code></td>
+</tr>
+<tr>
+<td><code>unit</code></td>
+<td><code>s --</code></td>
+<td>Creates an empty unit named <code>s</code> at the end of root and opens it</td>
+</tr>
+<tr>
+<td><code>src</code></td>
+<td><code>&#x27;name -- s</code></td>
+<td>Pushes the source text of the unit that contains <code>name</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>open</code> and <code>src</code> find the unit with <code>find_unit()</code>. It compares the symbol with unit names first and then with the names recorded for each unit. A symbol that is both a unit name and a word in another unit selects the unit with that name. The error for an unknown symbol is <code>&lt;name&gt; isn&#x27;t in any root unit</code>.</p>
+<p><code>unit</code> checks the name in this order: length 1 to 20 (<code>a unit name is 1 to 20 characters</code>), characters (<code>a unit name uses lowercase letters, digits and -</code>), duplicates (<code>&lt;name&gt; is already a unit</code>), and room (<code>there is no room for another unit</code> at 32 units). The new unit is created with the source <code>&quot;\n&quot;</code> and is added to root before the editor opens. If the user leaves the editor without a successful build, the empty unit stays in root.</p>
+<h3 id="editing-and-rebuilding">Editing and rebuilding</h3>
+<p><code>edit_unit(i)</code> is the common path of <code>open</code> and <code>unit</code>.</p>
+<ol>
+<li>The text to edit is the draft if the unit has one, otherwise the source.</li>
+<li><code>scrawl(&quot;root/&lt;name&gt;&quot;, text, strlen, &amp;outlen)</code> returns the edited text in a heap buffer, or <code>NULL</code> when the editor was left without saving. A <code>NULL</code> ends the command.</li>
+<li><code>rebuild(i, out)</code> is called with the edited text.</li>
+<li>If it fails, the old draft is freed and the edited text becomes the draft. The command fails with <code>root unchanged, &lt;error&gt; (your edit is kept: open it again)</code>. Root, <code>units[i].src</code> and the saved copy on the drive are unchanged.</li>
+<li>If it succeeds, the old source and draft are freed, the unit takes the new text and length, the draft is cleared, <code>persist_save_root()</code> writes root to the drive if the system is installed, and <code>edited root</code> is printed in light green. When <code>shadow_note</code> is not empty it is printed in peach on the next line.</li>
+</ol>
+<p>A draft is part of the running system only. It is not written to the drive and is lost at reboot.</p>
+<h3 id="persistence-in-an-installed-system">Persistence in an installed system</h3>
+<p><code>persist_save_root()</code> (<code>kernel/persist.c</code>) returns at once when <code>home &lt; 0</code>, the live case. Otherwise it calls <code>root_source()</code>, which writes every unit as <code>#&gt;&gt; &lt;name&gt;</code>, a newline, the source, and a closing newline if the source did not end with one, and stores the result in slot 0. The buffer is <code>SLOT_SECTORS * 512 - 512</code> bytes, which is 1048064 bytes with <code>SLOT_SECTORS</code> at 2048. <code>root_source()</code> returns 0 when the text does not fit, and <code>persist_save_root()</code> then writes nothing.</p>
+<p>Root is saved:</p>
+<ul>
+<li>after each successful edit or <code>unit</code> (<code>edit_unit()</code>);</li>
+<li>by <code>install-to</code>, after the home drive is set;</li>
+<li>by <code>save</code>.</li>
+</ul>
+<p>The state area has <code>NSLOTS = 1 + NTABS</code> slots, which is 5 (<code>kernel/persist.c</code>): slot 0 for root and slots 1 to 4 for the four tabs. The header sector holds a checksum for each slot. <code>persist_load()</code> refuses a slot whose length is larger than <code>SLOT_SECTORS * 512 - 1</code> or whose checksum does not match, and returns <code>NULL</code>.</p>
+<p>The saved text is the whole of root. Once a drive holds a root, changes to <code>root/*.om</code> in a later build do not reach that drive, because step 2 of <code>root_boot()</code> uses the saved text. To see a changed root in QEMU, boot the ISO or <code>-kernel build/subverge.elf</code> without an installed drive, or use <code>build/host</code>. The layout of the state area is in <a href="disk-layout.html">disk-layout</a>, and <a href="saving.html">saving</a> describes what the user sees.</p>
+<h2 id="writing-a-program">Writing a program</h2>
+<p>A program is a root word that takes the screen, loops until a quit key, and gives the screen back. This section builds one: a dot that moves with the arrow keys and jumps to the mouse pointer on a click. It is registered in <code>apps</code>, documented in <code>help.c</code>, and checked in <code>build/host</code> and in QEMU.</p>
+<h3 id="the-program">The program</h3>
+<p>Create <code>root/58-wander.om</code>. The prefix puts it after <code>57-tools</code>, and every word it uses is defined in <code>00-core.om</code> or is a builtin.</p>
+<pre><code>#&gt;&gt; wander
+# moving dot
+
+[ { x y } 32 x y 0 put ] :dot-off
+
+[ &quot;wander&quot; title wipe nocursor
+  40 { x } 12 { y } 1 { going }
+  &quot;  Arrows move, a click moves to the mouse, q leaves.&quot; 2 23 8 text
+  [ going ] [
+    key? { k }
+    k quit-key? [ 0 -&gt;going ] when
+    x y dot-off
+    k 256 = [ y 1 - 1 max -&gt;y ] when
+    k 257 = [ y 1 + 22 min -&gt;y ] when
+    k 258 = [ x 1 - 0 max -&gt;x ] when
+    k 259 = [ x 1 + 79 min -&gt;x ] when
+    mouse? [ mouse { mx my b } b 1 &amp; 1 = [ mx -&gt;x my 1 max 22 min -&gt;y ] when ] when
+    219 x y 14 put
+    2 sleep
+  ] while
+  wipe &quot;omega&quot; title
+] :wander
+</code></pre>
+<p>The parts:</p>
+<ul>
+<li><code>&quot;wander&quot; title</code> sets the tab label. <code>wipe</code> clears the tab screen and <code>nocursor</code> hides the cursor.</li>
+<li><code>40 { x } 12 { y } 1 { going }</code> pushes three values and binds them as locals in order, so <code>x</code> is 40, <code>y</code> is 12 and <code>going</code> is 1. The result is the same as <code>40 12 1 { x y going }</code>.</li>
+<li>The hint is drawn once, at row 23, with <code>text</code>: string, x, y, colour.</li>
+<li><code>key? { k }</code> reads a key code or <code>-1</code>. <code>k quit-key?</code> is true for <code>q</code>, Esc and Ctrl-C and clears <code>going</code>.</li>
+<li><code>x y dot-off</code> blanks the old position before it changes. <code>dot-off</code> is <code>32 x y 0 put</code>: character 32, colour 0.</li>
+<li>The arrow codes are 256 (up) to 259 (right). <code>max</code> and <code>min</code> keep the dot inside rows 1 to 22 and columns 0 to 79. Row 0 of the tab screen is the first row under the top bar of the system, so the area is rows 0 to 23 and the programs keep the last row for the hint.</li>
+<li><code>mouse?</code> pushes 1 when a PS/2 mouse was found at boot. <code>mouse</code> pushes the pointer column, the pointer row and the button bits (bit 0 is the left button, bit 1 the right). In the code the row has already been reduced by one, because the top bar is row 0 of the physical screen (<code>b_mouse()</code> pushes <code>mouse_cy - 1</code>). The <code>1 &amp; 1 =</code> test selects the left button.</li>
+<li><code>219 x y 14 put</code> draws a full block in colour 14.</li>
+<li><code>2 sleep</code> waits 20 ms. A <code>sleep</code> also checks the break flag, so Ctrl-C works even in a loop that never calls <code>key?</code>.</li>
+<li><code>wipe &quot;omega&quot; title</code> returns the screen and the label.</li>
+</ul>
+<p>The loop reads the mouse state directly with <code>mouse</code> and does not use events. Events are only queued while the pager is open (<code>mouse_on</code> in the task structure); a program that wants clicks polls the button bits each pass, as <code>scribble</code> does.</p>
+<h3 id="registering-it-in-apps">Registering it in apps</h3>
+<p>Add one line inside the list in <code>root/05-apps.om</code>:</p>
+<pre><code>[ &quot;wander&quot; &quot;Move a dot.&quot; ]
+</code></pre>
+<p>Keep the description to 25 characters or fewer. <code>apps</code> reads <code>app-list</code> on every call, so the entry is live as soon as root builds. The same edit can be made inside a running system with <code>&#x27;apps open</code>.</p>
+<h3 id="the-help-entry">The help entry</h3>
+<p><code>kernel/help.c</code> has one table, <code>docs[]</code>, and every root word needs a row in it. The row is <code>{ group, name, effect, text, example }</code>. For the program:</p>
+<pre><code>{ &quot;games&quot;, &quot;wander&quot;, &quot;--&quot;, &quot;Arrows or the mouse move a dot. q leaves.&quot;, &quot;wander&quot; },
+{ &quot;helpers&quot;, &quot;dot-off&quot;, &quot;x y --&quot;, &quot;Clears one cell.&quot;, &quot;40 12 dot-off&quot; },
+</code></pre>
+<p>The rules that <code>help_check()</code> enforces:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>group</code> is one of the entries of <code>groups[]</code></td>
+<td><code>syntax</code>, <code>stack</code>, <code>math</code>, <code>logic</code>, <code>flow</code>, <code>lists</code>, <code>text</code>, <code>io</code>, <code>names</code>, <code>world</code>, <code>infinity</code>, <code>memory</code>, <code>ports</code>, <code>time</code>, <code>screen</code>, <code>machine</code>, <code>dev</code>, <code>tools</code>, <code>demos</code>, <code>games</code>, <code>util</code>, <code>helpers</code></td>
+</tr>
+<tr>
+<td><code>text</code> is at most</td>
+<td>52 characters</td>
+</tr>
+<tr>
+<td><code>effect</code> is at most</td>
+<td>15 characters</td>
+</tr>
+<tr>
+<td>every builtin and every root word has a row</td>
+<td>the check reports <code>undocumented builtin</code> and <code>undocumented root word</code></td>
+</tr>
+<tr>
+<td>a row names a word that exists</td>
+<td>otherwise <code>doc for a word that doesn&#x27;t exist</code></td>
+</tr>
+</tbody>
+</table>
+<p>Place the row in the part of the table where the group is, because the group page prints the rows in table order. Helper words go in the group <code>helpers</code>, which is left out of the overview. A game goes in <code>games</code>, a demo of mathematics in <code>demos</code>, and an everyday program in <code>tools</code>. The <code>example</code> string is shown on the word page as <code>Try:</code> and it is the line that the pager offers to run. Leave it empty when the word needs arguments that cannot be shown in one line.</p>
+<h3 id="verifying-in-buildhost">Verifying in build/host</h3>
+<p><code>make host</code> builds <code>build/host</code>, a Linux executable that links the kernel&#x27;s portable C files with <code>test/host.c</code> and the same <code>build/rootfs.o</code> and <code>build/docfs.o</code>. It reads lines from standard input, evaluates each as omega, and prints the result stack after it. It has <code>@</code> commands: <code>@keys</code> queues keys (<code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>enter</code>, <code>esc</code>, <code>space</code>, <code>tab</code>, <code>ctrl-s</code>, <code>ctrl-q</code>, or the characters of any other token), <code>@screen</code> prints the 80 by 25 text screen, <code>@docs</code> runs <code>help_check()</code> and prints <code>N problems</code>, and <code>@readline</code> and <code>@dis</code> exist for the line editor and the disassembler.</p>
+<pre><code>make host
+printf &#x27;@docs\n@keys right right down q\nwander\napps\n@screen\n&#x27; | build/host
+</code></pre>
+<p>The first line must print <code>0 problems</code>. <code>@keys</code> has to come before the program runs, because the harness has no real keyboard: when the program asks for a key that is not queued, the harness stops that line (<code>ran out of keys during: ...</code>). The queued <code>q</code> ends the loop. <code>@screen</code> then shows the final screen, where <code>apps</code> should list <code>wander</code>.</p>
+<p>A definition typed into the harness must be on one line. Unit files may span lines because the parser reads the whole unit. The harness has no mouse, so <code>mouse?</code> is 0 there and the click branch is not exercised. <code>peek</code>, <code>time</code> and <code>date</code> do not work in the harness; programs that use them are checked in QEMU.</p>
+<h3 id="verifying-in-qemu">Verifying in QEMU</h3>
+<pre><code>make
+qemu-system-x86_64 -kernel build/subverge.elf -m 256
+</code></pre>
+<p>Run <code>wander</code>, move with the arrows, and click in the QEMU window to check the mouse branch. Press <code>q</code>, and check that the prompt and the tab label come back. Press Ctrl-C while it runs and check that <code>! interrupted</code> is printed. Check <code>apps</code> and <code>&#x27;wander help</code>. A drive that was installed from an older build holds its own copy of root and does not show the new unit (see Persistence in an installed system above). <code>test/qdrive.c</code> and the <code>*.qd</code> scripts drive a QEMU instance for automated runs.</p>
+<h2 id="the-learn-tutorial">The learn tutorial</h2>
+<p><code>learn</code> is the guided tour of the language. It is the whole of the unit <code>learn</code> in <code>root/80-learn.om</code>, and the lessons are data in the same file.</p>
+<h3 id="structure">Structure</h3>
+<pre><code>[ [
+  [ &quot;Title&quot; &quot;  Body text, lines already broken with \n.&quot; &quot;a line to run&quot; ]
+  ...
+] ] :lessons
+</code></pre>
+<p><code>lessons</code> is a quote that pushes a list of lessons. A lesson is a list of exactly three strings:</p>
+<table>
+<thead>
+<tr>
+<th>Position</th>
+<th>Name in <code>lesson</code></th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>ttl</code></td>
+<td>the heading, printed in colour 11</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>body</code></td>
+<td>the explanation, printed as it is</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>task</code></td>
+<td>the line offered to the user. An empty string means no task</td>
+</tr>
+</tbody>
+</table>
+<p>There are 47 lessons. <code>lesson</code> takes the index of the first lesson to show, <code>learn</code> is <code>0 lesson</code>, and <code>28 lesson</code> starts at index 28. The numbers shown to the user are one more than the index: the header is built as <code>learn  &lt;i + 1&gt; of &lt;n&gt;</code>, so lesson index 0 is displayed as 1 of 47.</p>
+<h3 id="the-loop">The loop</h3>
+<p>For each lesson <code>lesson</code> does the following.</p>
+<ol>
+<li><code>wipe nocursor</code>, then the header (<code>header</code>), the title and the body.</li>
+<li>If <code>task</code> is not empty, it prints <code>Run this, or type your own line:</code> and the task, then reads a line with <code>empty &quot;  &gt; &quot; ask</code>. A non-empty line is evaluated with <code>eval</code> inside <code>try</code>. If it fails, the stack is restored to the snapshot taken before (<code>depth list { snap }</code> and <code>empty snap spread</code>), so a failed line does not corrupt the lesson. The stack after the line is printed.</li>
+<li>It prints <code>Space next, b back, q stop.</code> and waits with <code>key</code>. <code>quit-key?</code> ends the tour. <code>b</code> (code 98) goes back one lesson when <code>i</code> is above 0. Any other key goes forward, and after the last lesson the tour ends.</li>
+</ol>
+<p>At the start <code>lesson</code> saves the user&#x27;s stack: <code>depth list { mine }</code>, then <code>empty</code>. At the end it clears the stack and restores it with <code>mine spread</code>, so the tour does not disturb what the user had.</p>
+<p><code>learn</code> runs as one long line. That has two effects the lessons mention: the definitions the tour&#x27;s examples make are in the tab as usual, and <code>back</code> after <code>learn</code> goes back over the whole tour as one step.</p>
+<h3 id="width-and-format-limits">Width and format limits</h3>
+<ul>
+<li>The screen is 80 columns wide. Body lines are indented by two spaces and broken by hand with <code>\n</code>. The longest line in the file is 73 characters including the two spaces; keep new lines at 76 or fewer.</li>
+<li>The longest body in the file has 6 lines. The lesson screen also holds the header, the title, the task block, the line the user types and the key prompt in 24 rows, so a body longer than that needs a check on the screen.</li>
+<li>The task is printed after four spaces, so it must fit in 76 characters. The longest in the file is 63. A quote or string inside a task is written with <code>\&quot;</code> in the source.</li>
+<li>A body contains <code>\w</code> and <code>\A</code> for omega and aleph. A literal backslash is <code>\\</code>.</li>
+<li>A lesson with an empty task string shows the body and goes straight to the key prompt (lessons Undo, Persistence and Where next).</li>
+<li>The title is one line and is also what makes the header (<code>learn  3 of 47</code>) context; keep it short (the longest is 22 characters).</li>
+</ul>
+<h3 id="adding-a-lesson">Adding a lesson</h3>
+<ol>
+<li>Choose the position. A lesson belongs next to the one it builds on, because the list is read in order and the numbers shift for all that follow. <code>28 lesson</code> in the help text of <code>lesson</code> then points to a different lesson, so check that example.</li>
+<li>Add a three-string list at that place in <code>root/80-learn.om</code>, or in a running system with <code>&#x27;lessons open</code>.</li>
+<li>Write the body with real line breaks as <code>\n</code> and a two-space indent.</li>
+<li>Write a task that works on a fresh tab, or an empty string. If the task needs a definition from an earlier lesson, say so in the body.</li>
+<li>Run it: <code>printf &#x27;@keys space space q\nlearn\n@screen\n&#x27; | build/host</code>, or <code>N lesson</code> in QEMU, where <code>N</code> is the index.</li>
+<li>Check the tour pages in <code>doc/</code> that mention the lesson count or a lesson by number, and check the text of the <code>learn</code> row in <code>apps</code>.</li>
+</ol>
+<p>The last lesson, <code>Where next</code>, names <code>root/80-learn.om</code> and <code>&#x27;learn open</code>. The lessons <code>Registering it in apps</code>, <code>Checking the entry</code> and <code>Root units</code> describe the same steps as the section Writing a program; change them together.</p>
+<h2 id="themes-and-logos">Themes and logos</h2>
+<h3 id="the-themes-table">The themes table</h3>
+<p>Themes are the array <code>themes[]</code> in <code>kernel/vga.c</code>, declared in <code>kernel/vga.h</code> as <code>struct theme { const char *name; u32 rgb[16]; }</code>. The array ends with an entry whose name is <code>NULL</code>. Each entry has the name and 16 colours as <code>0xRRGGBB</code>. The comment above the table gives the roles, in index order, and <code>kernel/vga.h</code> has the enum <code>C_BG</code> to <code>C_CAT</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Name in the table comment</th>
+<th>Enum</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>bg</td>
+<td><code>C_BG</code></td>
+<td>background</td>
+</tr>
+<tr>
+<td>1</td>
+<td>bar</td>
+<td><code>C_BAR</code></td>
+<td>top bar, selected rows, code in the pager</td>
+</tr>
+<tr>
+<td>2</td>
+<td>green</td>
+<td><code>C_GREEN</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>teal</td>
+<td><code>C_TEAL</code></td>
+<td>code text in the pager</td>
+</tr>
+<tr>
+<td>4</td>
+<td>red</td>
+<td><code>C_RED</code></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>mauve</td>
+<td><code>C_MAUVE</code></td>
+<td>page titles, visited links</td>
+</tr>
+<tr>
+<td>6</td>
+<td>peach</td>
+<td><code>C_PEACH</code></td>
+<td>selected link, quote bars</td>
+</tr>
+<tr>
+<td>7</td>
+<td>text</td>
+<td><code>C_TEXT</code></td>
+<td>default text</td>
+</tr>
+<tr>
+<td>8</td>
+<td>dim</td>
+<td><code>C_DIM</code></td>
+<td>hints, secondary text</td>
+</tr>
+<tr>
+<td>9</td>
+<td>blue</td>
+<td><code>C_BLUE</code></td>
+<td>word links</td>
+</tr>
+<tr>
+<td>10</td>
+<td>lgreen</td>
+<td><code>C_LGREEN</code></td>
+<td>success messages</td>
+</tr>
+<tr>
+<td>11</td>
+<td>sky</td>
+<td><code>C_SKY</code></td>
+<td>headings</td>
+</tr>
+<tr>
+<td>12</td>
+<td>lred</td>
+<td><code>C_LRED</code></td>
+<td>errors, unvisited links</td>
+</tr>
+<tr>
+<td>13</td>
+<td>pink</td>
+<td><code>C_PINK</code></td>
+<td></td>
+</tr>
+<tr>
+<td>14</td>
+<td>moon</td>
+<td><code>C_MOON</code></td>
+<td>accent</td>
+</tr>
+<tr>
+<td>15</td>
+<td>cat</td>
+<td><code>C_CAT</code></td>
+<td>brightest text</td>
+</tr>
+</tbody>
+</table>
+<p>The themes that exist are <code>dusk</code> (index 0, the one <code>vga_init()</code> selects), <code>raw</code>, <code>paper</code>, <code>amber</code>, <code>phosphor</code> and <code>haelide</code>.</p>
+<p><code>vga_theme(n)</code> checks <code>n</code> against the number of entries and, if valid, writes all 16 colours to the VGA DAC through <code>vga_rgb(i, rgb)</code>. That function keeps the top six bits of each channel (<code>rgb &gt;&gt; 18</code>, <code>&gt;&gt; 10</code>, <code>&gt;&gt; 2</code>, each masked with <code>0x3F</code>) and writes them to port <code>0x3C9</code> after selecting the register with port <code>0x3C8</code>. The register for colour <code>i</code> is given by <code>dac_index()</code>: <code>i</code> for 0 to 5, <code>0x14</code> for 6, <code>7</code> for 7, and <code>0x38 + i - 8</code> for 8 to 15. These are the VGA attribute palette entries of the standard text-mode attributes, so the theme changes the colour behind a number that is already on the screen. The same table is loaded into the DAC when graphics mode starts (<code>b_gfx()</code> in <code>kernel/hw.c</code>) and restored by <code>gfx_leave()</code>.</p>
+<h3 id="adding-a-theme">Adding a theme</h3>
+<ol>
+<li>Add an entry to <code>themes[]</code> before the terminating <code>{ NULL, { 0 } }</code>. Give it a lower-case name that is a valid symbol and 16 values in the order above.</li>
+<li>Keep the existing entries in place. The index of the current theme is stored on the drive (<code>struct state_header.theme</code> in <code>kernel/persist.c</code>), so reordering changes what an installed system boots with.</li>
+<li>Check that the contrasts are usable: colour 7 on 0 for text, 8 on 0 for hints, 1 as a background behind 7 and 14, 12 on 0 for errors and 9 on 0 for word links.</li>
+<li>If the theme should bring a logo, define <code>logo-&lt;name&gt;</code> in <code>root/10-sys.om</code> (next part) and its row in <code>help.c</code>.</li>
+<li>Document it in <code>doc/themes.md</code>, in the section that lists the themes.</li>
+<li>Build, run <code>themes</code> and <code>&#x27;name theme</code>, and look at <code>colors</code>, <code>sys</code>, <code>docs</code> and <code>top</code> in it.</li>
+</ol>
+<p><code>&#x27;name theme</code> (<code>b_theme()</code> in <code>kernel/hw.c</code>) searches <code>themes[]</code> by name. A match does three things: if a word <code>logo-&lt;name&gt;</code> is defined, the logo becomes that logo; otherwise, if the current logo has the name of the theme that is being left, the logo goes back to <code>subverge</code>; then <code>vga_theme(i)</code> is applied and <code>persist_save_theme()</code> writes the theme index and the logo name to the header of the state area. An unknown name fails with <code>&lt;name&gt; isn&#x27;t a theme, type themes to see them</code>. <code>themes</code> lists the names with <code>&gt;</code> on the current one and prints the 16 colours as blocks. <code>theme@</code> leaves the current name.</p>
+<h2 id="the-help-pages-in-doc">The help pages in doc/</h2>
+<p>The in-system help is a set of markdown files in <code>doc/</code>, shown by the pager in <code>kernel/doc.c</code>. A page is read from memory. Nothing is read from a drive, and an installed drive does not hold the pages. A page changes by editing its file and rebuilding.</p>
+<h3 id="from-files-to-the-pager">From files to the pager</h3>
+<pre><code>build/docfs.bin: $(sort $(wildcard doc/*.md)) | build
+    @for f in $^; do printf &#x27;#&gt;&gt; %s\n&#x27; &quot;$$(basename $$f .md)&quot;; cat $$f; printf &#x27;\n&#x27;; done &gt; $@
+</code></pre>
+<p>The build writes <code>#&gt;&gt; &lt;file name without .md&gt;</code>, the file, and a newline for each file in <code>sort</code> order, and links the result as <code>_binary_build_docfs_bin_start</code> and <code>_end</code>. The page name is the file name. <code>index_pages()</code> in <code>kernel/doc.c</code> scans the blob once for lines that begin with <code>#&gt;&gt; </code>, stores the name (at most 39 characters) and a pointer to the text, and computes the length of each page from the start of the next one. Page files therefore must not contain a line that starts with <code>#&gt;&gt; </code>. The table <code>pages[400]</code> holds at most 400 pages; the tree has 103.</p>
+<p>The words <code>docs</code> (opens <code>index</code>) and <code>doc</code> (<code>&quot;name&quot; doc</code>) are in <code>doc_words[]</code>. <code>open_page()</code> falls back to <code>index</code> if the name is unknown and fails with <code>there is no page called &lt;name&gt;, type docs for the index</code> when <code>index</code> itself is missing.</p>
+<h3 id="the-markup-dialect">The markup dialect</h3>
+<p><code>layout()</code> in <code>kernel/doc.c</code> reads the page line by line and decides the kind of block from the first characters of a line. The dialect is a subset of Markdown with a few additions.</p>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Written as</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Title</td>
+<td><code># text</code></td>
+<td>Centred, in mauve. The first one becomes the title in the top bar (55 characters at most); a page without one is titled with its name</td>
+</tr>
+<tr>
+<td>Heading 2</td>
+<td><code>## text</code></td>
+<td>Moon colour. Also defines an anchor</td>
+</tr>
+<tr>
+<td>Heading 3</td>
+<td><code>### text</code></td>
+<td>Peach colour. Also defines an anchor</td>
+</tr>
+<tr>
+<td>Deeper headings</td>
+<td><code>####</code> and more</td>
+<td>Not headings. The line is a paragraph</td>
+</tr>
+<tr>
+<td>Paragraph</td>
+<td>consecutive text lines</td>
+<td>Joined with single spaces and wrapped. It ends at a blank line or at a line that starts with <code>#</code>, <code>&gt;</code>, a table row, a list item, a fence or <code>@pages</code></td>
+</tr>
+<tr>
+<td>List</td>
+<td><code>- </code>, <code>* </code>, <code>+ </code> or <code>1. </code></td>
+<td>Bullets are drawn as a dot (code <code>0xF9</code>), numbered items keep their number. Continuation lines are indented by at least two spaces. Nested lists indent by the leading spaces</td>
+</tr>
+<tr>
+<td>Quote</td>
+<td><code>&gt; text</code></td>
+<td>Drawn with a bar in the left margin, in peach. A quote that starts with <code>**Warning:**</code> has a light red bar</td>
+</tr>
+<tr>
+<td>Code block, indented</td>
+<td>four spaces</td>
+<td>Only after a blank line (or the start). Lines with four leading spaces, blank lines inside are kept when the next line is indented again</td>
+</tr>
+<tr>
+<td>Code block, fenced</td>
+<td>a line starting with three backticks</td>
+<td>Ends at the next line starting with three backticks. The info string after the opening fence is ignored, except <code>text</code></td>
+</tr>
+<tr>
+<td>Table</td>
+<td>rows starting with <code>\|</code></td>
+<td>See below</td>
+</tr>
+<tr>
+<td>Rule</td>
+<td>three or more <code>-</code> or <code>*</code> at the line start</td>
+<td>A line of box-drawing dashes across the page</td>
+</tr>
+<tr>
+<td>Page list</td>
+<td>the line <code>@pages</code></td>
+<td>A list of every page, sorted by title, each as a page link. Pages named <code>tour-*</code> and <code>index</code> are left out</td>
+</tr>
+</tbody>
+</table>
+<p>Blank lines: one blank line separates blocks. After a list, the first blank line in the source adds one blank line in the output, and the next block follows with the spacing of a normal block.</p>
+<p>Inline markup, applied to paragraphs, headings, list items, quotes and table cells:</p>
+<table>
+<thead>
+<tr>
+<th>Written</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>`code`</code></td>
+<td>teal text, no further markup inside, spaces are not break points</td>
+</tr>
+<tr>
+<td><code>**bold**</code></td>
+<td>moon colour</td>
+</tr>
+<tr>
+<td><code>*emphasis*</code> or <code>_emphasis_</code></td>
+<td>the markers are removed; the text is drawn in the surrounding colour. The opening marker must be at the start or after a space and must be followed by a non-space, and the closing marker must follow a non-space</td>
+</tr>
+<tr>
+<td><code>\x</code></td>
+<td>the character <code>x</code>, for any <code>x</code>. It is also processed inside a code span</td>
+</tr>
+<tr>
+<td><code>&amp;lt;</code> <code>&amp;gt;</code> <code>&amp;amp;</code> <code>&amp;#124;</code></td>
+<td><code>&lt;</code> <code>&gt;</code> <code>&amp;</code> <code>\|</code>, outside code spans only</td>
+</tr>
+<tr>
+<td><code>[text](target.html)</code></td>
+<td>a link; see below</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>\|</code> inside a table cell needs the backslash or <code>&amp;#124;</code>, because the row is split at the bar first.</p>
+<h3 id="code-lines-and-runnable">Code lines and <code>runnable()</code></h3>
+<p>Every line of an indented block or of a fence that is not <code>text</code> is a candidate for a run link. <code>code_line()</code> first finds the note: the part of the line after the first run of three spaces. The part before it is the code. It becomes a link of kind run if <code>runnable()</code> accepts it. A runnable line is drawn on the bar colour in teal (<code>ATTR(C_TEAL, C_BAR)</code>), is selected with Tab like other links, and on Enter or a click the viewer closes, the text of the code part is copied to <code>doc_run</code> (200 bytes) and <code>omega_main()</code> evaluates it at the prompt after echoing it (<code>kprintf(&quot;%s\n&quot;, run)</code> and <code>eval_line(run)</code>).</p>
+<p><code>runnable(s, n)</code> takes the words of the code part, splits on spaces and brackets, and returns true when there is at least one token and every token is acceptable:</p>
+<ul>
+<li>a string between double quotes is skipped as a whole;</li>
+<li>a token that starts with a digit, or <code>-</code> followed by a digit, is a number and is accepted;</li>
+<li>a token starting with <code>&#x27;</code> or <code>:</code> is checked without that character, and <code>-&gt;</code> is skipped before the name;</li>
+<li><code>{</code> and <code>}</code> are accepted;</li>
+<li>anything else must be a builtin (the interned name has a function) or a bound name in the current dictionary (<code>lookup()</code>).</li>
+</ul>
+<p>If a word is unknown the line is plain teal text. This is why a command written in a page and not yet defined in the tab, or one with a typo, does not become a link. The check runs in the world of the tab that opens the pager, so a user&#x27;s own definitions count. A fence with the info string <code>text</code> (three backticks followed by <code>text</code>) is never a link. Use it for output, for prompts that show <code>&gt;</code> or for code that is not meant to be run. In an indented block use three spaces to separate a comment from the code; a note after the code is shown but not run. A line in a block is cut at the screen width (columns 4 to 79).</p>
+<h3 id="links">Links</h3>
+<p>The target is the text between the parentheses. <code>inline_text()</code> determines the kind from the start of the target.</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Kind</th>
+<th>Example</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>page</code> or <code>page.md</code></td>
+<td>page</td>
+<td><code>[keys](keys.html)</code></td>
+<td>opens the page <code>keys</code>. A trailing <code>.md</code> is removed</td>
+</tr>
+<tr>
+<td><code>page#anchor</code></td>
+<td>page and anchor</td>
+<td><code>[x](themes.html#graphics-mode)</code></td>
+<td>opens the page and scrolls to the heading</td>
+</tr>
+<tr>
+<td><code>#anchor</code></td>
+<td>anchor</td>
+<td><code>[x](#graphics-mode)</code></td>
+<td>scrolls to a heading of the current page</td>
+</tr>
+<tr>
+<td><code>?word</code></td>
+<td>word</td>
+<td><code>[dup](#)</code></td>
+<td>opens the generated page of the word <code>dup</code></td>
+</tr>
+<tr>
+<td><code>?group:name</code></td>
+<td>group</td>
+<td><code>[math](#)</code></td>
+<td>opens the generated list of the group <code>name</code>. It is a word link whose target starts with <code>group:</code></td>
+</tr>
+<tr>
+<td><code>&gt;code</code></td>
+<td>run</td>
+<td><code>[Snake](#)</code></td>
+<td>closes the viewer and runs <code>code</code> at the prompt</td>
+</tr>
+<tr>
+<td><code>http...</code></td>
+<td>external</td>
+<td><code>[HaliadeSYS](https://github.com/...)</code></td>
+<td>not a link. The text is shown plain, since the system has no network</td>
+</tr>
+</tbody>
+</table>
+<p>The tilde rule: in a run link, <code>~</code> stands for a space. A target cannot contain spaces in the source form used by the pages, so <code>[Timer](#)</code> runs <code>90 timer</code> and <code>[Hexview](#)</code> runs <code>0xB8000 hexview</code>. Outside run links <code>~</code> is an ordinary character.</p>
+<p>Anchors are made from <code>##</code> and <code>###</code> headings by <code>add_anchor()</code>: the text is lower-cased, spaces become <code>-</code>, and everything except <code>a-z</code>, <code>0-9</code> and <code>-</code> is dropped. The names are cut at 38 characters and the page keeps 64 anchors at most. <code>## Graphics mode</code> has the anchor <code>graphics-mode</code>. A link to an anchor that does not exist leaves the position unchanged.</p>
+<p>If a link target does not exist (no such page, or a word without a page), <code>follow()</code> restores the previous page, position and selection, and nothing else happens. <code>make doccheck</code> finds the first case before the build (see below).</p>
+<h3 id="character-set">Character set</h3>
+<p>The pager converts the page from UTF-8 to the single bytes of the screen font before layout (<code>to_font()</code>). Bytes below 0x80 are copied. Everything else is decoded and passed to <code>cp_of()</code>, which returns a font code or <code>?</code> for characters the font cannot show.</p>
+<table>
+<thead>
+<tr>
+<th>Character</th>
+<th>Code point</th>
+<th>Font code</th>
+<th>Becomes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>omega</td>
+<td>U+03C9</td>
+<td>0x80</td>
+<td>omega glyph</td>
+</tr>
+<tr>
+<td>aleph</td>
+<td>U+2135</td>
+<td>0x81</td>
+<td>aleph glyph</td>
+</tr>
+<tr>
+<td>subscript 0 to 9</td>
+<td>U+2080 to U+2089</td>
+<td>0x82 to 0x8B</td>
+<td>subscript digit</td>
+</tr>
+<tr>
+<td>o with diaeresis</td>
+<td>U+00F6</td>
+<td>0x94</td>
+<td><code>ö</code></td>
+</tr>
+<tr>
+<td>right guillemet</td>
+<td>U+00BB</td>
+<td>0xAF</td>
+<td><code>»</code></td>
+</tr>
+<tr>
+<td>middle dot</td>
+<td>U+00B7</td>
+<td>0xFA</td>
+<td><code>·</code></td>
+</tr>
+<tr>
+<td>superscript 2</td>
+<td>U+00B2</td>
+<td>0xFD</td>
+<td><code>²</code></td>
+</tr>
+<tr>
+<td>epsilon</td>
+<td>U+03B5</td>
+<td>0xEE</td>
+<td><code>ε</code></td>
+</tr>
+<tr>
+<td>pi</td>
+<td>U+03C0</td>
+<td>0xE3</td>
+<td><code>π</code></td>
+</tr>
+<tr>
+<td>less than or equal</td>
+<td>U+2264</td>
+<td>0xF3</td>
+<td><code>≤</code></td>
+</tr>
+<tr>
+<td>greater than or equal</td>
+<td>U+2265</td>
+<td>0xF2</td>
+<td><code>≥</code></td>
+</tr>
+<tr>
+<td>square root</td>
+<td>U+221A</td>
+<td>0xFB</td>
+<td><code>√</code></td>
+</tr>
+<tr>
+<td>minus sign</td>
+<td>U+2212</td>
+<td><code>-</code></td>
+<td>ASCII hyphen</td>
+</tr>
+<tr>
+<td>right single quote</td>
+<td>U+2019</td>
+<td><code>&#x27;</code></td>
+<td>ASCII apostrophe</td>
+</tr>
+<tr>
+<td>right arrow, maps-to arrow</td>
+<td>U+2192, U+21A6</td>
+<td><code>&gt;</code></td>
+<td>ASCII <code>&gt;</code></td>
+</tr>
+<tr>
+<td>subscript k, modifier k</td>
+<td>U+2096, U+1D4F</td>
+<td><code>k</code></td>
+<td>ASCII</td>
+</tr>
+<tr>
+<td>subscript j</td>
+<td>U+2C7C</td>
+<td><code>j</code></td>
+<td>ASCII</td>
+</tr>
+<tr>
+<td>subscript n, superscript n</td>
+<td>U+2099, U+207F</td>
+<td><code>n</code></td>
+<td>ASCII</td>
+</tr>
+<tr>
+<td>superscript plus</td>
+<td>U+208A</td>
+<td><code>+</code></td>
+<td>ASCII</td>
+</tr>
+<tr>
+<td>superscript 3</td>
+<td>U+00B3</td>
+<td><code>3</code></td>
+<td>ASCII</td>
+</tr>
+</tbody>
+</table>
+<p>Every other non-ASCII character is shown as <code>?</code>. The font is the table in <code>kernel/font.c</code>; adding a glyph needs a new code point mapping in <code>cp_of()</code> and the glyph itself. Most pages use ASCII only. The sequences <code>\w</code> and <code>\A</code> that the omega parser accepts in strings are not markup; in a page write the glyph itself or <code>omega</code> and <code>aleph0</code>.</p>
+<h2 id="how-a-page-is-checked">How a page is checked</h2>
+<h3 id="make-doccheck">make doccheck</h3>
+<pre><code>make doccheck
+</code></pre>
+<p>runs <code>python3 test/doclinks.py</code>, a 17-line script. It reads every <code>doc/*.md</code>, finds each <code>](target.html)</code> with a regular expression, and reports a problem for:</p>
+<ul>
+<li>a page target (no <code>?</code>, <code>&gt;</code>, <code>http</code> prefix) whose page name, after the removal of an anchor and a trailing <code>.md</code>, is not the name of a file in <code>doc/</code>. The names <code>word-index</code> and <code>a-to-z</code> are accepted as pages;</li>
+<li>a target that starts with <code>@</code> or <code>!</code>, which is not a link kind the pager knows.</li>
+</ul>
+<p>It prints <code>file: target</code> for each problem and <code>N problems</code>, and exits with status 1 when there are any. Targets that start with <code>?</code>, <code>&gt;</code> or <code>http</code> are skipped, as are anchor-only links.</p>
+<p>It does not check:</p>
+<ul>
+<li>that the word of a <code>?word</code> link has an entry in <code>help.c</code>; this fails at run time by leaving the pager on the current page;</li>
+<li>that the anchor in <code>page#anchor</code> exists;</li>
+<li>that a code line is runnable, or that the example in a page works;</li>
+<li>links written in other ways: the regular expression sees only <code>](...)</code> with no <code>)</code> inside;</li>
+<li>table widths, line widths, or the characters used;</li>
+<li>the copies of the pages on the website.</li>
+</ul>
+<h2 id="writing-and-reviewing-a-page">Writing and reviewing a page</h2>
+<p>A page is a file <code>doc/&lt;name&gt;.md</code>. The file name is the page name that <code>doc</code>, <code>docs</code> and the links use: lower case, digits and <code>-</code>, at most 39 characters. Add the name to the list in <code>doc/index.md</code>, where pages are grouped, unless it is a <code>tour-*</code> page. <code>@pages</code> in <code>index.md</code> lists everything else by title.</p>
+<h3 id="checklist-for-a-page">Checklist for a page</h3>
+<ol>
+<li>The first line is <code># Title</code>. It is one line, in title case or a short noun phrase, and it is what the pager shows in the top bar and in the <code>@pages</code> list (31 characters are kept in the list).</li>
+<li>The page has one subject. If a second subject needs more than a paragraph, it is another page, and the two link to each other with <code>[text](page.html)</code>.</li>
+<li>The page starts with the plain facts. It does not describe what the pager or the system is. It does not repeat what a linked page says.</li>
+<li>Headings are <code>##</code> and <code>###</code> only. A heading is a noun phrase and its anchor (lower case, <code>-</code> for spaces) is short enough to link to.</li>
+<li>Every cross-reference is a direct pointer, written as <code>see [keys](keys.html)</code>. The target is an existing file name. <code>make doccheck</code> must print <code>0 problems</code>.</li>
+<li>Every word a reader may need is linked with <code>[word](#)</code> the first time it is used on the page, and the word has an entry in <code>help.c</code>. A group is linked with <code>[math](#)</code>.</li>
+<li>Every example is an indented block (four spaces) or a fence. A code line that should run has all its words defined in the tab that reads it. A line that should not run (output, a prompt, code in progress) is in a fence marked <code>text</code>. A comment is separated from code by three spaces.</li>
+<li>Every example was run in <code>build/host</code> or in QEMU, and the result in the text is the result that was printed. Words that crash or do not exist in the harness (<code>peek</code>, <code>time</code>, <code>date</code>) are tried in QEMU.</li>
+<li>Tables have a header row and a separator row. The widths are checked by counting displayed characters: the sum of the column widths plus two per column is at most 74. Put long text in the last column, which wraps. Keep header cells short.</li>
+<li>Text lines are not wrapped by hand in paragraphs. Paragraph text is on one line in the source. Code lines are at most 76 characters (columns 4 to 79).</li>
+<li>The characters are ASCII, or from the list in the character-set table above. A character outside that list appears as <code>?</code> on the screen.</li>
+<li>Do not use raw HTML, images, footnotes or reference-style links. They are not part of the dialect. A URL is not a link in the system.</li>
+<li>The <code>&amp;lt;</code>, <code>&amp;gt;</code> and <code>&amp;amp;</code> entities are needed only outside code spans; inside a code span write the character.</li>
+<li>Read it in the pager: <code>&quot;name&quot; doc</code> in QEMU. Tab through the links, check that run lines are teal on the bar, that visited colours change, and that Backspace returns.</li>
+</ol>
+<h3 id="pages-on-the-website">Pages on the website</h3>
+<p>The in-system pages and the website pages are different files with the same format. A page that exists in both places is changed in both. In-system links name the page (<code>[keys](keys.html)</code>), and the site pages link with <code>name.md</code>. The pager removes <code>.md</code> from a page link, so <code>[keys](keys.html)</code> also works in <code>doc/</code>, and <code>doc/themes.md</code> already uses that form. See <a href="docfs.html">docfs</a> and <a href="help.html">help</a>.</p>
+<h2 id="checklist-for-root-and-page-changes">Checklist for root and page changes</h2>
+<ol>
+<li>Decide the unit. A new program goes in the unit of its kind or in a new file <code>root/NN-name.om</code> that starts with <code>#&gt;&gt; name</code> and ends with a newline. The prefix puts it in the build order, and the units it uses come before it.</li>
+<li>Define every word above its first use, and keep helpers next to the program that uses them. Take arguments on the stack, and use <code>{ }</code> locals for the body.</li>
+<li>A full-screen program starts with <code>&quot;name&quot; title wipe nocursor</code>, loops on <code>[ going ] [ ... ] while</code>, ends the loop on <code>quit-key?</code> or on any key, and finishes with <code>wipe &quot;omega&quot; title</code>. Read keys with <code>key?</code> or <code>waitkey</code>, and release <code>alloc</code> blocks with <code>free</code> before it returns.</li>
+<li>Register user-visible programs in <code>app-list</code> in <code>root/05-apps.om</code> with a description of at most 25 characters.</li>
+<li>Add a row in <code>kernel/help.c</code> for every new root word, with a group from <code>groups[]</code>, an effect of at most 15 characters and a text of at most 52. Helpers go in the group <code>helpers</code>.</li>
+<li>If the word is new to the tour or changes a lesson, edit <code>root/80-learn.om</code>: three strings per lesson, body lines of at most 76 characters, a task that fits in 76. Check that <code>28 lesson</code> in the help text of <code>lesson</code> still points where it should.</li>
+<li>For a new theme, append to <code>themes[]</code> in <code>kernel/vga.c</code> without reordering, and add a <code>logo-&lt;name&gt;</code> word and its help row if the theme has a logo. For a new logo, add <code>logo-&lt;name&gt;</code> to <code>root/10-sys.om</code> and a helper row.</li>
+<li>Run <code>make host</code>, feed the program and its keys to <code>build/host</code> with <code>@keys</code>, check <code>@screen</code>, and run <code>@docs</code>. It must print <code>0 problems</code>.</li>
+<li>Run <code>make</code>, boot <code>build/subverge.elf</code> in QEMU with no installed drive, and run the program with the keyboard and the mouse. Press Ctrl-C and check that it stops with <code>! interrupted</code>.</li>
+<li>Check a failed edit: break the unit with <code>&#x27;name open</code>, confirm the message <code>root unchanged, ...</code> and that <code>root</code> marks the unit as <code>(draft)</code>, then fix it.</li>
+<li>Check <code>root</code>: the unit and its words are listed, and a unit with more than 96 names is split into units or checked for the missing names.</li>
+<li>For a page, put the file in <code>doc/</code>, link it from <code>doc/index.md</code> or from a related page, link out to related pages and words, and run <code>make doccheck</code>. It must print <code>0 problems</code>.</li>
+<li>Run every code line of the page in <code>build/host</code> or QEMU, and check the table widths, the line lengths and the characters against the lists above.</li>
+<li>Open the page in QEMU with <code>&quot;name&quot; doc</code>, step through the links, and check the colours of run, word and page links.</li>
+<li>If the change affects the numbers in the version strings of <code>os</code>, <code>kernel-name</code> or the <code>sys</code> shell line, change all three.</li>
+<li>Update the matching page on the website when the behaviour it describes has changed.</li>
+</ol>
+<h2 id="the-host-harness">The host harness</h2>
+<p><code>make host</code> builds the omega interpreter and most of the kernel as an ordinary Linux program, <code>build/host</code>. The program is <code>test/host.c</code> (185 lines) linked with the kernel files named in <code>HOSTSRC</code> and with the two blobs the kernel normally carries, <code>build/rootfs.o</code> (the root units) and <code>build/docfs.o</code> (the help pages). Everything the kernel gets from hardware is replaced by a stub in <code>test/host.c</code>. The result runs one tab, reads lines from standard input and evaluates them with <code>eval_line</code>, the same function the shell calls.</p>
+<pre><code>$ make host
+$ printf &#x27;[ dup * ] :sq\n7 sq\n@screen\n&#x27; | build/host
+</code></pre>
+<p>The compile line is</p>
+<pre><code>gcc -DHOST -g -O1 -fno-builtin -no-pie -w -Ikernel -o build/host $(HOSTSRC) test/host.c build/rootfs.o build/docfs.o
+</code></pre>
+<p><code>-DHOST</code> switches the few <code>#ifdef HOST</code> blocks in the kernel (listed below), <code>-g</code> makes the program debuggable with <code>gdb build/host</code>, <code>-fno-builtin</code> keeps gcc from replacing the kernel&#x27;s own <code>memcpy</code> and <code>strlen</code> loops with calls to the libc ones, and <code>-w</code> silences warnings. The host build is not the place to look for warnings: the kernel build uses <code>-Wall -Wextra</code> and should stay free of them.</p>
+<h3 id="what-is-faked">What is faked</h3>
+<table>
+<thead>
+<tr>
+<th>Kernel facility</th>
+<th>Real implementation</th>
+<th>In <code>host.c</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boot information</td>
+<td><code>kernel/main.c</code> fills <code>struct bootinfo boot</code> from Multiboot</td>
+<td><code>boot = { 256 * 1024, 200 * 1024, &quot;host&quot; }</code>: 256 MiB of memory, a 200 KiB kernel, loader name <code>host</code></td>
+</tr>
+<tr>
+<td>heap</td>
+<td><code>heap_init</code> on the memory after the kernel, at most 64 MiB</td>
+<td><code>heap_init</code> over a 64 MiB static array, so the heap code in <code>kernel/mem.c</code> is the real one</td>
+</tr>
+<tr>
+<td>screen</td>
+<td>VGA text memory at <code>0xB8000</code></td>
+<td><code>kernel/vga.c</code> is compiled with <code>HOST</code>, and <code>HW</code> points at <code>u16 host_screen[80 * 25]</code> instead; port writes in <code>vga.c</code> become no-ops through local <code>outb</code> and <code>inb</code> macros</td>
+</tr>
+<tr>
+<td>keyboard</td>
+<td><code>kernel/kbd.c</code>, the PS/2 interrupt handler</td>
+<td><code>kbd_poll</code>, <code>kbd_get</code> and <code>kbd_init</code> read the ring <code>current-&gt;kb[64]</code> that <code>@keys</code> fills</td>
+</tr>
+<tr>
+<td>time</td>
+<td>the PIT at <code>HZ</code> 100 and <code>tick_count</code></td>
+<td><code>fake_ticks</code>, which only <code>host_yield</code> increments, by one each call</td>
+</tr>
+<tr>
+<td>idle and interrupt counters</td>
+<td><code>idle_ticks</code>, <code>irqn[]</code></td>
+<td><code>idle_count()</code> returns <code>fake_ticks / 2</code>, <code>irq_count(0)</code> returns <code>fake_ticks</code>, every other <code>irq_count</code> returns 7</td>
+</tr>
+<tr>
+<td><code>irq_set</code>, <code>timer_init</code></td>
+<td>the PIC and PIT setup</td>
+<td>empty functions</td>
+</tr>
+<tr>
+<td><code>panic</code></td>
+<td>the red screen and <code>hlt</code></td>
+<td>prints <code>PANIC: message</code> and calls <code>exit(1)</code></td>
+</tr>
+<tr>
+<td><code>cpu_brand</code></td>
+<td><code>cpuid</code> leaves <code>0x80000002</code> to <code>0x80000004</code></td>
+<td>copies <code>Host CPU</code></td>
+</tr>
+<tr>
+<td><code>yield</code></td>
+<td><code>int $48</code></td>
+<td><code>kernel/sched.c</code> under <code>HOST</code> calls <code>host_yield</code>, which advances the fake clock</td>
+</tr>
+<tr>
+<td>JIT memory</td>
+<td><code>kmalloc_try</code> and <code>kfree</code></td>
+<td><code>jit_alloc</code> is an <code>mmap</code> with <code>PROT_READ | PROT_WRITE | PROT_EXEC</code> of <code>n + 16</code> bytes; the first 8 bytes of the mapping store its length, and <code>jit_free</code> reads it back for <code>munmap</code>. The compiled code is real x86-64 that runs inside the host process</td>
+</tr>
+<tr>
+<td><code>font_init</code>, <code>font_save</code>, <code>font_restore</code></td>
+<td>VGA font plane handling in <code>kernel/font.c</code></td>
+<td>empty functions</td>
+</tr>
+<tr>
+<td>persistence</td>
+<td><code>kernel/persist.c</code>: ATA, state header, slots</td>
+<td><code>persist_load</code> returns <code>NULL</code>, so nothing is ever restored; <code>persist_save_tab</code>, <code>persist_save_root</code> and <code>persist_save_theme</code> do nothing; <code>persist_home</code> returns -1</td>
+</tr>
+<tr>
+<td>persist words</td>
+<td><code>persist_words[]</code></td>
+<td>a table with <code>home</code> (pushes -1) and the no-ops <code>drives</code>, <code>ask</code>, <code>install-to</code> and <code>save</code></td>
+</tr>
+<tr>
+<td>irq-safe sections</td>
+<td><code>irq_save</code> and <code>irq_restore</code> with <code>pushfq</code> and <code>cli</code></td>
+<td><code>kernel/task.h</code> under <code>HOST</code> defines them as empty inline functions</td>
+</tr>
+<tr>
+<td>the mouse</td>
+<td>PS/2 init and the interrupt handler in <code>kernel/mouse.c</code></td>
+<td>the part of <code>mouse.c</code> inside <code>#ifndef HOST</code> is left out, so <code>mouse?</code> pushes 0 and <code>mouse</code> pushes 0 -1 0 (cell column, cell row below the tab bar, buttons)</td>
+</tr>
+<tr>
+<td>help check</td>
+<td>n/a</td>
+<td><code>help_check()</code> in <code>kernel/help.c</code> exists only under <code>HOST</code></td>
+</tr>
+</tbody>
+</table>
+<p>The four tab tasks are never started. <code>main</code> sets <code>current = &amp;tabs[0]</code>, <code>tabs[0].entry = omega_main</code> and <code>active_tab = 0</code>, and calls <code>omega_init_world()</code> again to create the world for that tab. There is no scheduler loop, so a word that waits for something another tab would do cannot complete. A word that calls <code>yield</code> or <code>sleep</code> only moves the fake clock.</p>
+<p>The registration order in <code>main</code> is the same as <code>kmain</code>: <code>core_words</code>, <code>hw_words</code>, <code>ord_words</code>, <code>root_words</code>, <code>jit_words</code>, <code>dis_words</code>, <code>help_words</code>, <code>doc_words</code>, <code>mouse_words</code> and <code>persist_words</code>, then <code>ord_init()</code> and <code>root_boot()</code>. If the root units fail to build, the harness prints <code>ROOT ERROR: message</code> before reading input. That line is the quickest way to find a syntax error in a file in <code>root/</code>.</p>
+<h3 id="the-source-list">The source list</h3>
+<p><code>HOSTSRC</code> in the Makefile is</p>
+<pre><code>kernel/lib.c kernel/big.c kernel/omega.c kernel/words.c kernel/ord.c kernel/root.c kernel/hw.c
+kernel/line.c kernel/scrawl.c kernel/calc.c kernel/sysinfo.c kernel/mem.c kernel/vga.c
+kernel/sched.c kernel/jit.c kernel/dis.c kernel/help.c kernel/doc.c kernel/mouse.c
+kernel/gfx.c kernel/img.c
+</code></pre>
+<p>Five kernel files are left out, and <code>test/host.c</code> defines the symbols they would have provided.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Why it is not built for the host</th>
+<th>Replaced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kernel/main.c</code></td>
+<td><code>kmain</code>, Multiboot parsing, the <code>sti</code> and <code>hlt</code> loop</td>
+<td><code>main</code> in <code>test/host.c</code></td>
+</tr>
+<tr>
+<td><code>kernel/cpu.c</code></td>
+<td>IDT, PIC, PIT, exception handlers, <code>panic</code>, <code>cpuid</code></td>
+<td><code>ticks</code>, <code>idle_count</code>, <code>irq_count</code>, <code>irq_set</code>, <code>timer_init</code>, <code>panic</code>, <code>cpu_brand</code></td>
+</tr>
+<tr>
+<td><code>kernel/kbd.c</code></td>
+<td>scancode decoding on port <code>0x60</code></td>
+<td><code>kbd_poll</code>, <code>kbd_get</code>, <code>kbd_init</code></td>
+</tr>
+<tr>
+<td><code>kernel/disk.c</code></td>
+<td>ATA PIO on ports <code>0x1F0</code> and up</td>
+<td>nothing, since the host build never calls into it</td>
+</tr>
+<tr>
+<td><code>kernel/persist.c</code></td>
+<td><code>install</code>, <code>save</code>, the state header, <code>persist_snapshot</code></td>
+<td>the <code>persist_*</code> stubs and <code>persist_words</code></td>
+</tr>
+<tr>
+<td><code>kernel/font.c</code></td>
+<td>the VGA character generator</td>
+<td><code>font_init</code>, <code>font_save</code>, <code>font_restore</code></td>
+</tr>
+</tbody>
+</table>
+<p>A new file under <code>kernel/</code> belongs in <code>HOSTSRC</code> when it only manipulates memory and the <code>V</code> values of the interpreter. It stays out when it executes privileged instructions or talks to ports at load time, because the host program runs in ring 3 and the first <code>in</code>, <code>out</code>, <code>cli</code> or access to an unmapped address kills it with <code>SIGSEGV</code>. A file that is compiled for the host and still contains a hardware access in one word, such as <code>hw.c</code>, is fine as long as that word is not run. The same list is used by <code>make stress</code>, so a file added to one is added to both. The two targets differ only in <code>-DGC_STRESS</code> and the output name, and <code>stress</code> lists <code>build/rootfs.o</code> but not <code>build/docfs.o</code> as a prerequisite, so run <code>make host</code> once before the first <code>make stress</code> on a clean tree.</p>
+<p><code>kernel/help.c</code> includes <code>&lt;stdio.h&gt;</code> under <code>HOST</code> for the <code>printf</code> calls in <code>help_check</code>. The other <code>#ifdef HOST</code> blocks are <code>kernel/sched.c</code> (<code>yield</code>), <code>kernel/vga.c</code> (the screen array), <code>kernel/task.h</code> (<code>irq_save</code>), <code>kernel/jit.c</code> (<code>jit_alloc</code> and <code>jit_free</code> are external) and <code>kernel/mouse.c</code> (hardware part).</p>
+<h3 id="how-input-is-fed">How input is fed</h3>
+<p><code>main</code> reads standard input with <code>fgets</code> into a 512 byte buffer and removes the last character of each line unconditionally. A final line without a newline therefore loses its last character, so end every script with <code>\n</code>. A line of 511 characters or more is split. The prompt line editor is not involved: each line goes straight to <code>eval_line</code>, which means the 200 character <code>LINE_MAX</code> of <code>readline</code> does not apply either.</p>
+<p>For an ordinary line the harness writes <code>&gt; </code> in colour <code>C_SKY</code> and the line text in colour <code>C_TEXT</code> to the fake screen, runs <code>eval_line</code>, and prints to standard output</p>
+<pre><code>[line as typed] stack contents
+</code></pre>
+<p>where the stack contents are the values of <code>W-&gt;cur.stack</code> printed with <code>repr</code>. This is the world after the line: if the line failed, the stack is the one from before it, as in the shell. Output that words produce with <code>kputs</code>, <code>.</code> and <code>say</code> goes to the fake screen, not to standard output, and shows up in <code>@screen</code> or in the final screen dump.</p>
+<p>At end of input <code>main</code> calls <code>dump()</code> once more and returns 0.</p>
+<h3 id="directives">Directives</h3>
+<p>A line that starts with <code>@</code> is a directive. The match is by prefix with <code>strncmp</code>, so <code>@screenshot</code> is taken as <code>@screen</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Directive</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@screen</code></td>
+<td>prints the fake screen: a border line, 25 rows of 80 characters between <code>|</code> and a border line. Row 0 is the tab bar row (blank unless <code>title</code> or a tab switch drew it), rows 1 to 24 are the text area <code>VH</code></td>
+</tr>
+<tr>
+<td><code>@keys k k k</code></td>
+<td>queues keys for the next line that reads them</td>
+</tr>
+<tr>
+<td><code>@readline</code></td>
+<td>calls <code>readline</code> on the world&#x27;s history and prints <code>readline: N &quot;text&quot;</code>, or <code>readline: ran out of keys</code></td>
+</tr>
+<tr>
+<td><code>@docs</code></td>
+<td>runs <code>help_check()</code> and prints <code>N problems</code></td>
+</tr>
+<tr>
+<td><code>@dis name</code></td>
+<td>disassembles the compiled code of <code>name</code></td>
+</tr>
+<tr>
+<td><code>@roundtrip</code></td>
+<td>saves the world as source, rebuilds it and compares</td>
+</tr>
+</tbody>
+</table>
+<p>Characters in <code>@screen</code> are the low byte of each cell, attributes are not shown. The printable range 32 to 126 is printed as it is. These cells are translated:</p>
+<table>
+<thead>
+<tr>
+<th>Cell</th>
+<th>Printed as</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x80</code></td>
+<td><code>w</code></td>
+<td>the omega character</td>
+</tr>
+<tr>
+<td><code>0x81</code></td>
+<td><code>A</code></td>
+<td>the aleph character</td>
+</tr>
+<tr>
+<td><code>0x82</code> to <code>0x8B</code></td>
+<td><code>0</code> to <code>9</code></td>
+<td>subscript digits</td>
+</tr>
+<tr>
+<td><code>0xEE</code></td>
+<td><code>e</code></td>
+<td>the epsilon character</td>
+</tr>
+<tr>
+<td><code>0xFA</code></td>
+<td><code>.</code></td>
+<td>the middle dot used in progress bars</td>
+</tr>
+<tr>
+<td><code>0xFD</code></td>
+<td><code>2</code></td>
+<td>the superscript 2</td>
+</tr>
+<tr>
+<td><code>0xAF</code></td>
+<td><code>&gt;</code></td>
+<td>the prompt mark</td>
+</tr>
+<tr>
+<td><code>0xDB</code></td>
+<td><code>#</code></td>
+<td>the full block</td>
+</tr>
+<tr>
+<td><code>7</code></td>
+<td><code>*</code></td>
+<td>the bullet</td>
+</tr>
+<tr>
+<td>anything else</td>
+<td><code>?</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="keys"><code>@keys</code></h3>
+<p>The rest of the line is split on spaces, and each token is turned into keys:</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>up</code>, <code>down</code>, <code>left</code>, <code>right</code></td>
+<td><code>K_UP</code>, <code>K_DOWN</code>, <code>K_LEFT</code>, <code>K_RIGHT</code></td>
+</tr>
+<tr>
+<td><code>enter</code></td>
+<td><code>&#x27;\n&#x27;</code></td>
+</tr>
+<tr>
+<td><code>esc</code></td>
+<td>27</td>
+</tr>
+<tr>
+<td><code>space</code></td>
+<td><code>&#x27; &#x27;</code></td>
+</tr>
+<tr>
+<td><code>tab</code></td>
+<td><code>&#x27;\t&#x27;</code></td>
+</tr>
+<tr>
+<td><code>ctrl-s</code></td>
+<td><code>CTRL(&#x27;s&#x27;)</code></td>
+</tr>
+<tr>
+<td><code>ctrl-q</code></td>
+<td><code>CTRL(&#x27;q&#x27;)</code></td>
+</tr>
+<tr>
+<td>any other token</td>
+<td>every character of the token, in order</td>
+</tr>
+</tbody>
+</table>
+<p>A token such as <code>abc</code> queues three keys, and a space between words needs the token <code>space</code>. The keys that the harness cannot produce are Backspace, Ctrl-C, Home, End, Page Up, Page Down, Delete, Shift-Tab and the mouse. A token like <code>home</code> would type the letters <code>h</code>, <code>o</code>, <code>m</code> and <code>e</code>. The queue is the 64 slot ring in <code>current-&gt;kb</code>, filled by <code>key()</code> without a full check: more than 63 keys queued before they are read overwrite the oldest.</p>
+<p>Keys stay queued across lines until something reads them, so <code>@keys</code> goes before the line that needs them:</p>
+<pre><code>@keys a b enter
+@readline
+</code></pre>
+<p>prints <code>readline: 2 &quot;ab&quot;</code>.</p>
+<h3 id="dis-and-roundtrip"><code>@dis</code> and <code>@roundtrip</code></h3>
+<p><code>@dis name</code> looks up <code>name</code>, and if it is a quote that has been compiled it writes the machine code to <code>build/dis.bin</code> and the listing from <code>dis1()</code> to <code>build/dis.txt</code>, one <code>offset: mnemonic</code> line per instruction. A quote is compiled when it runs for the second time, so run it a few times first:</p>
+<pre><code>[ dup * ] :sq
+10 [ 5 sq drop ] times
+@dis sq
+</code></pre>
+<p>If the word has no code the harness prints <code>@dis: no code</code>. The directory <code>build/</code> must exist.</p>
+<p><code>@roundtrip</code> calls <code>omega_source</code> on the current world and prints <code>---- saved world (N bytes) ----</code> followed by the text. It then creates a fresh world with <code>W-&gt;restoring = 1</code>, evaluates the text in it, saves that world again and prints <code>roundtrip MATCHES</code> or <code>roundtrip DIFFERS</code> with the second text. This is the code path <code>install</code> and <code>save</code> use to write a slot, and a value type that does not survive it shows up here. The old world is dropped and not freed.</p>
+<p><code>@docs</code> is the docs check described above.</p>
+<h3 id="what-cannot-be-tested-on-the-host">What cannot be tested on the host</h3>
+<table>
+<thead>
+<tr>
+<th>Word or area</th>
+<th>What happens in <code>build/host</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>peek</code>, <code>peekd</code>, <code>peekq</code>, <code>poke</code>, <code>poked</code>, <code>pokeq</code></td>
+<td>The word dereferences the address in the host process. <code>0 peek</code> ends with <code>SIGSEGV</code> (exit status 139), and an address inside the program&#x27;s own mappings reads host memory</td>
+</tr>
+<tr>
+<td><code>in</code>, <code>out</code>, <code>ind</code>, <code>outd</code></td>
+<td>the <code>in</code> and <code>out</code> instructions fault in ring 3, so the process is killed</td>
+</tr>
+<tr>
+<td><code>time</code>, and <code>date</code>, which is a root word that calls it</td>
+<td><code>hw.c</code> reads the CMOS through ports <code>0x70</code> and <code>0x71</code>; the process is killed</td>
+</tr>
+<tr>
+<td><code>gfx</code>, <code>gfx-off</code>, <code>dot</code>, <code>box</code>, <code>window</code></td>
+<td><code>gfx</code> scans PCI through ports <code>0xCF8</code> and <code>0xCFC</code> and is killed. The drawing words refuse to run while <code>gfx_on</code> is 0 with <code>graphics mode is off, run gfx first</code></td>
+</tr>
+<tr>
+<td><code>pci</code>, <code>pci@</code>, <code>pcils</code>, <code>beep</code>, <code>cr</code>, <code>halt</code>, <code>reboot</code></td>
+<td>port or control register access, killed or meaningless</td>
+</tr>
+<tr>
+<td><code>mouse</code>, <code>mouse?</code>, and the mouse in the help viewer and <code>scribble</code></td>
+<td>no PS/2 driver; <code>mouse?</code> is 0</td>
+</tr>
+<tr>
+<td><code>install</code>, <code>install-to</code>, <code>drives</code>, <code>save</code>, saved worlds</td>
+<td>stubs; nothing is read from or written to a disk. <code>@roundtrip</code> tests the text form instead</td>
+</tr>
+<tr>
+<td>tab switching with F1 to F4, the tab bar clock, the activity star</td>
+<td>only one tab exists and <code>draw_tabbar</code> reads the CMOS clock through the host&#x27;s <code>inb</code> stub, which returns 0</td>
+</tr>
+<tr>
+<td>interrupt-driven behaviour: <code>idle</code>, <code>irqmon</code>, Ctrl-C, preemption</td>
+<td><code>kbreak</code> is never set, since the keyboard handler is not there, so Ctrl-C handling is only testable in QEMU</td>
+</tr>
+<tr>
+<td>timing: <code>ticks</code>, <code>uptime</code>, <code>bench</code></td>
+<td>the clock advances only inside <code>yield</code>, so figures say nothing about speed</td>
+</tr>
+<tr>
+<td>the fault handler: <code>page fault at ...</code>, <code>your last line was dropped</code></td>
+<td>a real fault kills the host process instead of restarting the tab</td>
+</tr>
+<tr>
+<td>graphics mode and the font</td>
+<td><code>gfx_on</code> never becomes 1</td>
+</tr>
+<tr>
+<td>the machine-specific parts of <code>sys</code>, <code>top</code>, <code>memls</code></td>
+<td>they run, with the fake values above</td>
+</tr>
+</tbody>
+</table>
+<p>Words that need none of these run the same as on the machine: arithmetic, bignums, ordinals and cardinals, lists and strings, quotes and locals, transactions and <code>back</code>, the JIT and the disassembler, root units, the help table, the pager&#x27;s layout of a page (<code>doc</code>), and <code>scrawl</code> driven with <code>@keys</code>.</p>
+<p>Bugs that look like they are about the host harness are usually one of these: a key that cannot be sent, a line that needs a clock, or a word from the table above.</p>
+<h2 id="gc-stress-builds">GC stress builds</h2>
+<p><code>make stress</code> builds <code>build/stress</code> from the same sources with <code>-DGC_STRESS</code>. Two things change:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Normal build</th>
+<th>With <code>GC_STRESS</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kernel/omega.c</code>, <code>gc_point()</code></td>
+<td>collects only when <code>W-&gt;nobjs &gt; W-&gt;gc_threshold</code> (at least 8192, and twice the live count after each collection)</td>
+<td>collects at every call, when pinning is off and <code>W-&gt;nkeep &lt;= 256</code></td>
+</tr>
+<tr>
+<td><code>kernel/mem.c</code>, <code>kfree()</code></td>
+<td>the block goes back to the free list</td>
+<td>the block is first filled with <code>0xDD</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>gc_point</code> is called once per item in <code>run()</code>, once per tick in compiled code (<code>h_tick</code> in <code>jit.c</code>), and by a few words that allocate in loops. With stress on, a collection runs before every word. An object that is reachable only from a C local variable, a field the marker does not visit, or a <code>V</code> held across a call that allocates is freed at the first opportunity and overwritten with <code>0xDD</code>. The symptom is then immediate and repeatable:</p>
+<ul>
+<li>a value that prints as an enormous number (<code>0xDDDDDDDD</code> in a field) or as a string of <code>Ý</code> characters,</li>
+<li>a crash inside <code>mark</code> or <code>run</code>,</li>
+<li><code>PANIC: double free</code> from <code>kfree</code>.</li>
+</ul>
+<p>The rule that keeps a value alive is <code>keep(v)</code> before the call that may allocate and <code>unkeep(n)</code> after, as <code>b_times</code>, <code>b_for</code>, <code>b_while</code>, <code>b_each</code> and <code>b_map</code> in <code>kernel/words.c</code> do. <code>call()</code> itself keeps the quote it runs. The keep stack holds 256 entries, <code>W-&gt;keep[256]</code>, and collection is skipped while it is deeper than that. A new built-in that allocates a result, calls a quote and then uses the result needs a <code>keep</code> around the call. Run <code>make stress</code> and a few lines that use the word, with lists and strings as arguments, for any change to <code>kernel/omega.c</code> and for every new built-in.</p>
+<pre><code>$ make stress
+$ printf &#x27;[ 1 2 3 ] [ 2 * ] map .\n[ 1 2 3 ] [ dup * ] each\n&#x27; | build/stress
+</code></pre>
+<p>The build takes about fifteen seconds. <code>build/stress</code> collects before every word, so it starts and runs slower than <code>build/host</code>.</p>
+<h2 id="the-qemu-driver">The QEMU driver</h2>
+<p><code>test/qdrive.c</code> (228 lines, plain C, no libraries beyond libc) starts QEMU, talks to its monitor, and plays a script of key presses and screenshots. It is built by <code>make qdrive</code> into <code>build/qdrive</code>.</p>
+<pre><code>$ build/qdrive script.qd -- qemu-system-x86_64 -cdrom build/subverge.iso -boot d -m 256M
+</code></pre>
+<p>The first argument is the script, or <code>-</code> for standard input. Everything after <code>--</code> is the complete QEMU command, starting with the program name. <code>main</code> checks that <code>--</code> is the second argument and that there are at least four arguments, and otherwise prints <code>usage: qdrive script -- qemu args...</code> and exits with status 2.</p>
+<h3 id="how-it-starts-qemu">How it starts QEMU</h3>
+<ol>
+<li>It builds the monitor address <code>unix:/tmp/qdrive.PID.sock,server,nowait</code> from its own process id.</li>
+<li>It appends <code>-monitor &lt;that address&gt; -display none</code> to the arguments given, so a <code>-display</code> or <code>-monitor</code> of your own is overridden by these two (QEMU takes the last one).</li>
+<li>It forks. The child redirects standard output and error to <code>/dev/null</code> and runs <code>execvp</code>. Nothing QEMU prints reaches the terminal, which includes a QEMU error about a bad option. If the script appears to do nothing, run the QEMU command by hand first.</li>
+<li>The parent connects to the socket, trying every 50 ms up to 100 times (about five seconds). If it cannot connect it prints <code>qdrive: no monitor</code>, kills QEMU and exits 1.</li>
+<li>It reads from the monitor until the <code>(qemu) </code> prompt appears, then runs the script.</li>
+<li>At the end it sends <code>quit</code>, waits 200 ms, sends <code>SIGKILL</code> and <code>waitpid</code>, and unlinks the socket.</li>
+</ol>
+<p><code>until_prompt</code> is used after every monitor command. It polls the socket in 50 ms steps and gives up after 200 steps in a row with no data, which is about ten seconds without any output, with <code>qdrive: monitor timeout</code>. Any failure goes through <code>die()</code>, which kills QEMU and removes the socket.</p>
+<p>QEMU&#x27;s answer to a monitor command is read and thrown away. <code>mon info registers</code> in a script therefore does not show the registers. To read monitor output, run QEMU with <code>-monitor stdio</code>, or with <code>-monitor unix:/tmp/m.sock,server,nowait</code> and connect with <code>nc -U /tmp/m.sock</code>.</p>
+<h3 id="script-commands">Script commands</h3>
+<p>A script has one command per line. The first word is the command and the rest of the line, after one space, is its argument. Empty lines and lines starting with <code>#</code> are skipped. An unknown command prints <code>qdrive: bad line: ...</code> to standard error and the script goes on.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Argument</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wait</code></td>
+<td>milliseconds</td>
+<td>sleeps</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>text</td>
+<td>sends each character as a <code>sendkey</code>, 45 ms after each key, without Enter</td>
+</tr>
+<tr>
+<td><code>cmd</code></td>
+<td>text, optionally <code>  ~ms</code></td>
+<td>types the text, sends <code>ret</code>, then sleeps 600 ms or the number after the <code>~</code></td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td>one QEMU key name</td>
+<td><code>sendkey name</code> and a 45 ms sleep</td>
+</tr>
+<tr>
+<td><code>shot</code></td>
+<td>file name</td>
+<td>takes a screenshot as a PNG</td>
+</tr>
+<tr>
+<td><code>mon</code></td>
+<td>monitor command</td>
+<td>sends the line to the monitor and waits for the prompt</td>
+</tr>
+<tr>
+<td><code>quit</code></td>
+<td></td>
+<td>ends the script; QEMU is shut down</td>
+</tr>
+</tbody>
+</table>
+<p>For <code>cmd</code>, the marker is two spaces followed by <code>~</code> and a number, at the end of the line. <code>cmd 90 timer  ~2500</code> types <code>90 timer</code> and waits 2.5 seconds. A text that itself contains two spaces and a <code>~</code> would be cut at that point. <code>cmd</code> with no text only presses Enter, which the scripts use to leave a program (<code>cmd   ~300</code>).</p>
+<h3 id="typing">Typing</h3>
+<p><code>type</code> converts each character with <code>keyname</code>:</p>
+<ul>
+<li>letters and digits are sent as they are, and an upper case letter as <code>shift-x</code>,</li>
+<li>a table maps punctuation: space is <code>spc</code>, <code>[</code> and <code>]</code> are <code>bracket_left</code> and <code>bracket_right</code>, <code>&#x27;</code> is <code>apostrophe</code>, <code>:</code> is <code>shift-semicolon</code>, <code>+</code> is <code>shift-equal</code>, <code>*</code> is <code>shift-8</code>, <code>&lt;</code> and <code>&gt;</code> are <code>shift-comma</code> and <code>shift-dot</code>, <code>&quot;</code> is <code>shift-apostrophe</code>, <code>{</code> and <code>}</code> are <code>shift-bracket_left</code> and <code>shift-bracket_right</code>, <code>|</code> is <code>shift-backslash</code>, <code>~</code> is <code>shift-grave_accent</code>, and the others (<code>; = - . , / ^ &amp; ! ? # @ _ \ ( ) %</code>) are mapped the same way for a US layout.</li>
+</ul>
+<p>Two characters used in omega are not in the table: the backtick and <code>$</code>. They would be sent as a key named by the character itself, which QEMU rejects, so they must be sent with <code>key grave_accent</code> and <code>key shift-4</code>. The table covers a US keyboard, which is what the kernel&#x27;s scancode table in <code>kernel/kbd.c</code> assumes.</p>
+<p><code>key</code> takes QEMU&#x27;s names directly: <code>ret</code>, <code>spc</code>, <code>tab</code>, <code>esc</code>, <code>backspace</code>, <code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>home</code>, <code>end</code>, <code>pgup</code>, <code>pgdn</code>, <code>delete</code>, <code>f1</code> to <code>f4</code>, <code>ctrl-c</code>, <code>ctrl-s</code>, <code>ctrl-q</code>, <code>alt-1</code> to <code>alt-4</code>, <code>shift-tab</code>, and any letter. <code>sendkey</code> accepts several keys with <code>-</code>, and the driver passes the string unchanged.</p>
+<h3 id="screenshots">Screenshots</h3>
+<p><code>shot file.png</code> runs <code>screendump file.png.ppm</code> in the monitor, converts the PPM to a PNG with the converter inside <code>qdrive.c</code> (a PNG writer with CRC and Adler-32, using stored deflate blocks so it needs no zlib), and deletes the PPM. The text screen is 720 by 400 pixels, so a file is about 860 KB. It prints <code>shot file.png</code>. The target directory must exist: the scripts write to <code>build/</code>. A failed screendump stops the script with <code>qdrive: screendump failed</code>.</p>
+<h3 id="timing-rules">Timing rules</h3>
+<p>The driver does not look at the screen, so every wait is a guess that must be longer than the OS needs. The values used by the scripts:</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Wait</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ISO to prompt (GRUB with <code>timeout 0</code>, then the kernel and <code>sys</code>)</td>
+<td><code>wait 5000</code> at the start of the script</td>
+</tr>
+<tr>
+<td><code>-kernel build/subverge.elf</code> to prompt</td>
+<td><code>wait 2500</code></td>
+</tr>
+<tr>
+<td>a word that prints and returns</td>
+<td>the default 600 ms, or <code>~300</code> to <code>~800</code></td>
+</tr>
+<tr>
+<td>opening <code>help</code>, <code>learn</code>, <code>apps</code>, <code>root</code>, <code>&#x27;name open</code></td>
+<td><code>~800</code> to <code>~1500</code></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code>~800</code>, then <code>0</code> at <code>~600</code>, then <code>yes</code> at <code>~6000</code></td>
+</tr>
+<tr>
+<td>a word that animates or counts (<code>snake</code>, <code>life</code>, <code>rain</code>, <code>irqmon</code>)</td>
+<td><code>~2500</code></td>
+</tr>
+<tr>
+<td><code>[ 24 fib drop ] bench</code></td>
+<td><code>~9000</code></td>
+</tr>
+<tr>
+<td><code>count</code>, <code>supertask</code></td>
+<td><code>~19000</code>, <code>~12000</code></td>
+</tr>
+<tr>
+<td>after leaving a program with <code>q</code> or <code>ctrl-c</code></td>
+<td><code>wait 500</code> or <code>600</code> before the next command</td>
+</tr>
+<tr>
+<td>after <code>gfx</code></td>
+<td><code>wait 700</code> before the screenshot</td>
+</tr>
+</tbody>
+</table>
+<p>A script that types before the prompt is ready loses characters, since the keyboard handler only fills the 64 slot queue of the active tab. The 45 ms between keys is long enough that the queue does not fill while a word is busy, but a long-running word delays the processing of the keys behind it, so wait before the next <code>cmd</code>. Timings on a slow or loaded host machine need larger numbers.</p>
+<h2 id="writing-a-qemu-test">Writing a QEMU test</h2>
+<p>A script for a feature: boot the ISO, type a line, check the result in a screenshot.</p>
+<pre><code># sum
+wait 5000
+cmd empty wipe
+cmd 2 3 + .  ~400
+cmd 2 3 + 4 *  ~400
+shot build/t-sum.png
+</code></pre>
+<p>The steps:</p>
+<pre><code>$ make iso
+$ make qdrive
+$ build/qdrive test/sum.qd -- qemu-system-x86_64 -cdrom build/subverge.iso -boot d -m 256M
+shot build/t-sum.png
+</code></pre>
+<p>Look at the PNG. <code>empty</code> clears the stack and <code>wipe</code> clears the screen, which makes a screenshot easier to compare to the previous one. The test for a failing line is the same with the error text as the thing to look for:</p>
+<pre><code>cmd 1 0 /  ~300
+shot build/t-err.png
+</code></pre>
+<p>A script that needs a disk attaches a blank image and boots it twice, once to install and once on its own:</p>
+<pre><code>$ make disk
+$ build/qdrive test/shots2.qd -- qemu-system-x86_64 -cdrom build/subverge.iso -boot d -hda build/disk.img -m 256M
+$ build/qdrive test/shots3.qd -- qemu-system-x86_64 -hda build/disk.img -m 256M
+</code></pre>
+<p>A test that uses <code>gfx</code> needs the Bochs display card, which is QEMU&#x27;s default <code>-vga std</code>. A test that sends keys to an editor or the pager uses <code>key</code> for Tab, Enter, Backspace and the arrows:</p>
+<pre><code>cmd docs  ~1200
+key tab
+key tab
+key ret
+wait 600
+shot build/t-doc.png
+key q
+</code></pre>
+<p>The driver can send a mouse movement through the monitor:</p>
+<pre><code>mon mouse_move 80 48
+mon mouse_button 1
+wait 200
+mon mouse_button 0
+cmd mouse? . mouse . . .  ~400
+</code></pre>
+<p><code>mouse_move</code> takes relative steps in QEMU&#x27;s units, and <code>mouse_button</code> takes the button mask (1 left, 2 right, 4 middle).</p>
+<p>A test is finished when the screenshot shows what the feature should show and a second run gives the same picture. Timing-dependent output (<code>uptime</code>, <code>top</code>, the tab bar clock, <code>rand</code>) differs between runs, so screenshots of those are not comparable pixel by pixel.</p>
+<h2 id="debugging-recipes">Debugging recipes</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Probable cause</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Black screen after GRUB, nothing printed</td>
+<td>The kernel did not start or died before <code>vga_init</code>. Causes: a stale <code>build/subverge.elf</code> in the ISO; a build with a different <code>CFLAGS</code> that emits SSE instructions (the kernel is built with <code>-mgeneral-regs-only</code>, and <code>cr4</code> is never set up for SSE, so one <code>movaps</code> is an invalid opcode before the IDT exists); a change to <code>boot/boot.asm</code> or <code>linker.ld</code> that moved the Multiboot header out of the first 8 KiB of the image</td>
+<td><code>make clean &amp;&amp; make iso</code>; boot with <code>-kernel build/subverge.elf</code> to skip GRUB; run with <code>-d int,cpu_reset -no-reboot -D /tmp/q.log</code> and read the end of the log; GRUB itself reports <code>no multiboot header found</code> when the header is missing</td>
+</tr>
+<tr>
+<td>Reboot loop, or the screen resets every second</td>
+<td>A triple fault. An exception before <code>cpu_init()</code> installs the IDT (the first lines of <code>kmain</code>: <code>persist_snapshot</code>, <code>vga_init</code>, <code>font_init</code>) has no handler, and an exception inside a handler that itself faults escalates through a double fault (<code>double fault</code> in the exception table, vector 8)</td>
+<td><code>-no-reboot -d int,cpu_reset -D /tmp/q.log</code>; the last <code>check_exception</code> lines in the log give the vector and <code>CR2</code>; add the failing step with <code>-s -S</code> and <code>hbreak</code></td>
+</tr>
+<tr>
+<td><code>! page fault at 0x... (rip 0x...)</code></td>
+<td><code>isr_handler</code> found vector 14 and printed <code>CR2</code> and the faulting <code>rip</code> (other vectors print <code>name at rip 0x...</code>). Memory is identity-mapped for the first 4 GiB with 2 MiB pages and nothing above, so an address of 4 GiB or more faults, for instance <code>0x100000000 peek</code>. Address 0 is mapped and does not fault. The tab restarts at its prompt with <code>your last line was dropped</code>, and the world is as it was before the line</td>
+<td>resolve <code>rip</code> with <code>info symbol</code>; if the address is in the kernel, the function named is the culprit; if it is a heap address, it is compiled code: run <code>jit-off</code> and repeat the line to confirm, then <code>&#x27;name xray</code></td>
+</tr>
+<tr>
+<td>A line hangs and Ctrl-C does nothing</td>
+<td><code>kbreak</code> is set by the keyboard interrupt for the active tab and read by <code>brk()</code>. It is polled in <code>run()</code> for each item, in the loop words (<code>times</code>, <code>for</code>, <code>while</code>, <code>each</code>, <code>map</code>, <code>fold</code>...), in <code>sleep</code> and <code>beep</code>, and by compiled code at each loop tick (<code>h_tick</code>). A built-in that loops without calling <code>brk()</code>, code with interrupts masked by <code>irq_save</code>, or Ctrl-C pressed in a tab that is not the active one are the cases where nothing is polled</td>
+<td>switch tabs with F1 to F4, which still works, and use <code>reboot</code> in the stuck tab or close QEMU; add <code>if (brk()) break;</code> to the built-in&#x27;s loop</td>
+</tr>
+<tr>
+<td>A value full of <code>0xDD</code>, a huge number where a small one was expected, a crash in <code>mark</code></td>
+<td>An object was freed while it was in use: a missing <code>keep()</code> around a call that allocates. The fill is the <code>GC_STRESS</code> fill, so this is also how <code>make stress</code> reports it. A normal build shows it as random corruption later</td>
+<td><code>make stress</code> and run the line again; find the object held in a C local across a call to <code>call</code>, <code>run</code>, <code>str_new</code>, <code>quote_new</code> or <code>gnew</code> and add <code>keep(v)</code> and <code>unkeep(1)</code></td>
+</tr>
+<tr>
+<td><code>PANIC: double free</code></td>
+<td><code>kfree</code> found the block already free. Usually a block freed by hand and also reachable from a quote, or a <code>jit_free</code> of code that <code>jit_forget</code> already released</td>
+<td>build with <code>make stress</code>, then break on <code>panic</code> in gdb</td>
+</tr>
+<tr>
+<td>A word is missing from <code>help</code></td>
+<td>The word has no entry in the <code>docs[]</code> table in <code>kernel/help.c</code>, or the entry&#x27;s group is not in <code>groups[]</code></td>
+<td><code>printf &#x27;@docs\n&#x27; | build/host</code> names the word as <code>undocumented builtin: name</code> or <code>undocumented root word: name</code>. The same check reports entries for words that do not exist, a bad group, text over 52 characters and an effect over 15</td>
+</tr>
+<tr>
+<td><code>&#x27;name help</code> shows a page with the wrong group</td>
+<td>the <code>group</code> field of the entry; groups are listed in order at the top of <code>help.c</code></td>
+<td>edit the entry</td>
+</tr>
+<tr>
+<td>Text vanishes when switching tabs</td>
+<td>Output that bypassed the per-tab buffer. Each tab owns <code>term.buf</code> (80 by 24 cells). <code>vga_put</code> writes the buffer and, for the active tab, video memory too. <code>switch_tab</code> redraws video memory from the buffer, so anything written to video memory with <code>hw_put</code> or directly to <code>HW[]</code> is lost. Only the tab bar, <code>panic</code> and the pointer cell are meant to do that. Output from a task that is not active goes to its buffer only and marks the tab with <code>*</code></td>
+<td>write through <code>vga_put</code>, <code>vga_puts_at</code> or <code>kputc</code>; check that code in an interrupt handler does not call <code>vga_put</code>, since <code>current</code> there is the interrupted task and the text lands in its buffer</td>
+</tr>
+<tr>
+<td>Garbled text, wrong colours or a wrong font after <code>gfx-off</code></td>
+<td>The text mode registers or the font were not restored. <code>gfx_leave</code> does the restore: <code>vbe(4, 0)</code>, <code>font_restore(saved_font)</code>, <code>vga_restore()</code> and the palette from the current theme, and clears <code>gfx_on</code>. It relies on <code>vga_save()</code> and <code>font_save()</code> having been called by <code>gfx</code> when it entered. A fault inside graphics mode leaves <code>gfx_on</code> set; the tab restarts without the screen being restored, until <code>gfx-off</code> or any tab switch (<code>switch_tab</code> calls <code>gfx_leave</code> first)</td>
+<td>switch to another tab and back; check that new code that changes the mode goes through <code>gfx_leave</code></td>
+</tr>
+<tr>
+<td>Drawing words fail with <code>graphics mode is off, run gfx first</code></td>
+<td><code>dot</code>, <code>box</code>, <code>window</code> and <code>bmp-show</code> check <code>gfx_on</code></td>
+<td>run <code>gfx</code> first; the check is in <code>gfx.c</code> and <code>img.c</code></td>
+</tr>
+<tr>
+<td><code>gfx</code> fails with <code>no Bochs display here, start QEMU with -vga std</code></td>
+<td><code>b_gfx</code> scans PCI bus 0 for the device <code>0x1234:0x1111</code> and reads the VBE ID register <code>0xB0Cx</code></td>
+<td>start QEMU with <code>-vga std</code></td>
+</tr>
+<tr>
+<td>The mouse does not move</td>
+<td>The pointer is drawn only after the first movement event. QEMU delivers pointer events to the guest only after the window grabbed the mouse (click in it, Ctrl-Alt-G releases) and never in <code>-display none</code>, where <code>mon mouse_move</code> can be used instead. <code>mouse?</code> is 0 when <code>mouse_init</code> failed: the controller did not answer within 100000 polls, or the reset <code>0xF6</code> or enable <code>0xF4</code> command was not acknowledged with <code>0xFA</code>. IRQ 12 is unmasked in <code>cpu_init</code> (<code>0xA1</code> mask <code>0xEF</code>)</td>
+<td>run <code>mouse? .</code>; if it is 1, check <code>info mice</code> in the monitor; in the pager, events are posted only for a task whose <code>mouse_on</code> is set, which <code>doc.c</code> sets while the viewer runs; tab clicks work in every program</td>
+</tr>
+<tr>
+<td>The keys go nowhere or into the wrong tab</td>
+<td><code>kbd.c</code> pushes to <code>tabs[active_tab]</code>, and <code>kbd_get</code> reads <code>current-&gt;kb</code>. The ring has 64 entries and drops keys when it is full</td>
+<td>check <code>active_tab</code>; a word that runs for a long time and does not read keys lets the queue fill</td>
+</tr>
+<tr>
+<td><code>ran out of memory</code>, or a panic with the same text</td>
+<td><code>kmalloc</code> returns <code>NULL</code> only through <code>kmalloc_try</code>; <code>kmalloc</code> itself panics. Words that allocate on request use the <code>_try</code> form and <code>fail</code></td>
+<td><code>stats</code> and <code>top</code> show the heap; the heap is at most 64 MiB, whatever <code>-m</code> says</td>
+</tr>
+<tr>
+<td>An installed disk boots to a blank state</td>
+<td><code>persist_init</code> found no <code>SVSTATE1</code> header, or a slot whose checksum does not match</td>
+<td><code>install</code> again, or check that the image is attached with <code>-hda</code> or <code>if=ide</code></td>
+</tr>
+<tr>
+<td>An installed disk keeps old root code after an update</td>
+<td>The saved root in slot 0 is tried first at boot and the built-in root is the fallback</td>
+<td><code>install</code> again after changing files in <code>root/</code></td>
+</tr>
+<tr>
+<td><code>ROOT ERROR:</code> in the host harness, or <code>! root: ...</code> on the first screen</td>
+<td>A root unit does not build. The message starts with the unit&#x27;s name</td>
+<td><code>make host</code>, run <code>printf &#x27;&#x27; | build/host</code> and fix the unit named</td>
+</tr>
+<tr>
+<td>A line works in <code>build/host</code> and not in QEMU</td>
+<td>Compiled code: the host runs it too. Otherwise clock, ports or the machine</td>
+<td>compare with <code>jit-off</code>; try the line twice, since compilation happens on the second run</td>
+</tr>
+</tbody>
+</table>
+<h2 id="code-conventions">Code conventions</h2>
+<h3 id="c">C</h3>
+<p>The C is C11 (<code>-std=gnu11</code>), built freestanding with <code>-ffreestanding -nostdlib -mgeneral-regs-only -mno-red-zone -fno-pie -fno-stack-protector -fno-asynchronous-unwind-tables -fcf-protection=none -O2 -Wall -Wextra</code>. The tree builds without warnings and a change should keep it so.</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>In practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>indentation</td>
+<td>4 spaces, no tabs; the <code>case</code> labels of a <code>switch</code> are at the same level as <code>switch</code></td>
+</tr>
+<tr>
+<td>braces</td>
+<td>the opening brace on the same line as <code>if</code>, <code>for</code>, <code>while</code> and the function head; the closing brace of a function in column 0</td>
+</tr>
+<tr>
+<td>short bodies</td>
+<td><code>if (cond) stmt;</code> and <code>if (!need(2, &quot;swap&quot;)) return;</code> stay on one line, and a body of one to three short statements can sit in braces on the same line (<code>if (!x) { fail(...); return; }</code>); long lines up to about 140 characters occur in the tables</td>
+</tr>
+<tr>
+<td>declarations</td>
+<td>local variables at the point of first use; <code>i64 a, b;</code> lists for related values</td>
+</tr>
+<tr>
+<td>files</td>
+<td>one subject per file; <code>#include &quot;cpu.h&quot;</code> first among the project headers where it is needed, then the others in alphabetical order</td>
+</tr>
+<tr>
+<td>headers</td>
+<td><code>#pragma once</code> and nothing else as a guard</td>
+</tr>
+<tr>
+<td>types</td>
+<td><code>u8 u16 u32 u64 i8 i32 i64</code> from <code>lib.h</code>, <code>size_t</code> for sizes, <code>V</code> for omega values, <code>bind</code>, <code>quote</code>, <code>str</code> for objects; <code>int</code> for small counts and flags</td>
+</tr>
+<tr>
+<td>naming</td>
+<td>lower case with underscores for functions and variables, <code>T_</code> for value types (<code>T_INT</code>), <code>O_</code> for object kinds, <code>K_</code> for key codes, <code>C_</code> for colours, upper case for macros and constants (<code>HZ</code>, <code>STK</code>, <code>NTABS</code>)</td>
+</tr>
+<tr>
+<td>linkage</td>
+<td>everything used by one file only is <code>static</code>; names shared between files are declared in a header or, for a few table symbols, with <code>extern</code> at the point of use</td>
+</tr>
+<tr>
+<td>comments</td>
+<td><code>/* */</code> only, one to three words, lower case, no full stops, above or beside the line they describe (<code>/* yield */</code>, <code>/* PIT timer */</code>, <code>/* bright backgrounds, no blink */</code>). No <code>//</code> comments, no doc blocks, no <code>TODO</code></td>
+</tr>
+<tr>
+<td>section headers</td>
+<td><code>/* printing */</code>, <code>/* the world */</code> and similar, on a line by themselves, preceded by a blank line</td>
+</tr>
+<tr>
+<td>magic numbers</td>
+<td>hardware constants appear as numbers with a comment when they need one (<code>0x3C8</code>, <code>0xF8</code>); limits are macros at the top of the file (<code>#define NEV 16</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern for a built-in:</p>
+<pre><code>static void b_name(void) {
+    i64 n;
+    if (!pop_int(&quot;name&quot;, &amp;n)) return;
+    if (n &lt;= 0) { fail(&quot;name needs a number above 0%s&quot;, &quot;&quot;); return; }
+    push(I(n * 2));
+}
+</code></pre>
+<p>and the table at the bottom of the file:</p>
+<pre><code>const struct builtin xxx_words[] = { { &quot;name&quot;, b_name }, { NULL, NULL } };
+</code></pre>
+<p>Built-ins are <code>static void b_&lt;name&gt;(void)</code>. The suffix <code>q</code> stands for <code>?</code> (<code>b_keyq</code> for <code>key?</code>, <code>b_mouseq</code> for <code>mouse?</code>), <code>d</code> for the 32 bit variant (<code>b_peekd</code>), <code>off</code> for a <code>-off</code> word (<code>b_gfxoff</code>), <code>b_fail</code> and <code>b_help</code> have the name as written. A word is registered in the table of its file and in <code>help.c</code>. A word that is a symbol or a name with punctuation uses a plain C name. Arguments come from the stack through <code>need(n, &quot;word&quot;)</code>, <code>want</code>, <code>pop_int</code> and <code>pop_str</code>, each of which calls <code>fail</code> with the word&#x27;s name on a mismatch and returns 0. Results are pushed with <code>push(I(n))</code>, <code>push(S(str))</code> or <code>push(Q(quote))</code>. A built-in must stop when <code>W-&gt;err</code> is set, which <code>push</code> already does, and a loop that can run long must test <code>brk()</code>.</p>
+<h3 id="freestanding-rules">Freestanding rules</h3>
+<p>The kernel is linked with <code>-nostdlib</code>. No libc is present, so none of <code>printf</code>, <code>malloc</code>, <code>strcpy</code>, <code>strchr</code>, <code>atoi</code>, <code>qsort</code>, <code>snprintf</code> or the <code>&lt;stdio.h&gt;</code>, <code>&lt;stdlib.h&gt;</code>, <code>&lt;string.h&gt;</code> headers can be used. <code>kernel/lib.h</code> includes <code>&lt;stdarg.h&gt;</code>, <code>&lt;stddef.h&gt;</code> and <code>&lt;stdint.h&gt;</code>, which are compiler headers and are fine. <code>lib.c</code> provides:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>memset</code>, <code>memcpy</code>, <code>memmove</code>, <code>memcmp</code></td>
+<td>byte loops</td>
+</tr>
+<tr>
+<td><code>strlen</code>, <code>strcmp</code>, <code>strncmp</code>, <code>strstr</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>scopy(d, s, cap)</code></td>
+<td>copy with truncation; always terminates</td>
+</tr>
+<tr>
+<td><code>snfmt(buf, n, fmt, ...)</code> and <code>vsnfmt</code></td>
+<td>a small formatter, described below</td>
+</tr>
+<tr>
+<td><code>outb</code>, <code>inb</code></td>
+<td>inline port access in <code>lib.h</code></td>
+</tr>
+<tr>
+<td><code>MIN</code>, <code>MAX</code>, <code>CTRL</code></td>
+<td>macros</td>
+</tr>
+</tbody>
+</table>
+<p><code>kernel/mem.h</code> provides <code>kmalloc</code>, <code>kmalloc_try</code>, <code>kzalloc</code>, <code>kfree</code>, <code>krealloc</code>, <code>heap_used</code> and <code>heap_total</code>. <code>kmalloc</code> panics when memory runs out and <code>kmalloc_try</code> returns <code>NULL</code>. A block carries a 32 byte header, sizes round up to 16 bytes, and <code>kmalloc_try</code> disables interrupts while it walks the list. There is no floating point (<code>-mgeneral-regs-only</code>; SSE registers are never saved by the tab switch), no <code>long double</code>, and no static constructors. <code>-fno-pie</code> means absolute addresses, so code is position dependent at <code>0x100000</code> (<code>linker.ld</code>).</p>
+<p>Since the red zone is disabled and the tab switch saves only the general registers, an interrupt handler may use the stack freely.</p>
+<h3 id="formatting-output">Formatting output</h3>
+<p><code>kprintf(fmt, ...)</code> formats into a 256 byte buffer and prints it with <code>kputs</code> at the current position of the current tab, in the current colour, wrapping at column 80. <code>snfmt</code> writes into a buffer and returns the length that the full output would have had. Both use the formatter in <code>lib.c</code>, which understands:</p>
+<table>
+<thead>
+<tr>
+<th>Spec</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%s</code></td>
+<td>string; <code>NULL</code> prints <code>(null)</code></td>
+</tr>
+<tr>
+<td><code>%c</code></td>
+<td>character</td>
+</tr>
+<tr>
+<td><code>%d</code>, <code>%u</code>, <code>%x</code></td>
+<td><code>int</code>, <code>unsigned</code>, hex; with <code>l</code> or <code>ll</code> (the loop accepts any number of <code>l</code>) the argument is 64 bit</td>
+</tr>
+<tr>
+<td>width, <code>0</code> and <code>-</code></td>
+<td><code>%5d</code>, <code>%02u</code>, <code>%-11s</code></td>
+</tr>
+<tr>
+<td><code>%%</code></td>
+<td>any other character after <code>%</code> is printed as it is, so <code>%%</code> gives <code>%</code></td>
+</tr>
+</tbody>
+</table>
+<p>It does not know precision (<code>%.3s</code>), <code>%i</code>, <code>%p</code>, <code>%o</code>, floating point or <code>*</code> widths. Use <code>%lx</code> with a <code>u64</code> cast for pointers. <code>%lu</code> takes a <code>u64</code>.</p>
+<p>The colour of printed text is set with <code>vga_color(C_x)</code> before and <code>vga_color(C_TEXT)</code> after. The colours are the 16 constants in <code>vga.h</code>: <code>C_BG</code>, <code>C_BAR</code>, <code>C_GREEN</code>, <code>C_TEAL</code>, <code>C_RED</code>, <code>C_MAUVE</code>, <code>C_PEACH</code>, <code>C_TEXT</code>, <code>C_DIM</code>, <code>C_BLUE</code>, <code>C_LGREEN</code>, <code>C_SKY</code>, <code>C_LRED</code>, <code>C_PINK</code>, <code>C_MOON</code>, <code>C_CAT</code>. Their values come from the current theme.</p>
+<h3 id="error-messages">Error messages</h3>
+<p>A built-in reports an error with <code>fail(fmt, arg)</code>, which stores the text in <code>W-&gt;errmsg[96]</code> (so at most 95 characters) and sets <code>W-&gt;err</code>. The first failure of a line wins: later calls return at once. <code>fail</code> takes exactly one <code>%s</code> argument, and a message without a variable part passes an empty string, which is why the source has the <code>%s&quot;, &quot;&quot;</code> idiom:</p>
+<pre><code>fail(&quot;that list is empty%s&quot;, &quot;&quot;);
+fail(&quot;%s isn&#x27;t defined&quot;, s-&gt;s);
+fail(&quot;alloc takes 1 byte up to 16M%s&quot;, &quot;&quot;);
+</code></pre>
+<p>The shell prints the message as <code>  ! text</code> in <code>C_LRED</code>, undoes the line and prints nothing more. The rules the existing messages follow:</p>
+<ul>
+<li>one lower case sentence, no full stop, no <code>error:</code> prefix, no exclamation mark;</li>
+<li>the first words say what failed, either the word&#x27;s name (<code>pick needs 0 or more</code>, <code>peek needs more values on the stack</code>) or the thing (<code>that list is empty</code>);</li>
+<li>the message says what was expected, not only what went wrong: <code>sort needs a list of numbers or a list of strings</code>, <code>rand needs a number above 0</code>;</li>
+<li>plain English and contractions as in the rest of the system (<code>isn&#x27;t</code>, <code>can&#x27;t</code>, <code>doesn&#x27;t</code>); no abbreviations such as <code>arg</code> or <code>ptr</code> and no hexadecimal numbers unless an address is the point;</li>
+<li>a message that suggests a fix names the word to run: <code>graphics mode is off, run gfx first</code>, <code>no Bochs display here, start QEMU with -vga std</code>;</li>
+<li>the word&#x27;s name comes from the first argument of <code>need</code>, <code>want</code>, <code>pop_int</code> and <code>pop_str</code>, so a failed pop reports the word that called it. Pass the name of the word the user typed;</li>
+<li>a root word uses <code>&quot;text&quot; fail</code>, which calls the same path.</li>
+</ul>
+<p>Faults print <code>page fault at 0x... (rip 0x...)</code> or <code>name at rip 0x...</code>, followed by <code>your last line was dropped</code> in grey. These come from the CPU and are not written with <code>fail</code>.</p>
+<p>Messages are also documented on the <a href="errors.html">errors</a> page, which should list a new message when one is added that a user can reach.</p>
+<h3 id="omega">omega</h3>
+<p>The root units in <code>root/*.om</code> are omega source. The rules that the existing 13 files follow:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>In practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>file names</td>
+<td>a two digit number and a name (<code>00-core.om</code>, <code>57-tools.om</code>); the files are concatenated in name order, so the number is the order in which units build and later units may use earlier ones</td>
+</tr>
+<tr>
+<td>unit header</td>
+<td>the first line is <code>#&gt;&gt; name</code>, the unit name, 24 characters at most; the second line is a <code>#</code> comment of a few words (<code># program list</code>, <code># logos, stats</code>)</td>
+</tr>
+<tr>
+<td>definitions</td>
+<td><code>[ body ] :name</code>, one per paragraph, separated by a blank line; a long body is broken at word boundaries with two spaces of indentation</td>
+</tr>
+<tr>
+<td>names</td>
+<td>lower case, hyphens between words (<code>mb-iter</code>, <code>scribble-hint</code>, <code>todo-add</code>), a <code>?</code> ending for a predicate (<code>quit-key?</code>, <code>leap?</code>), a <code>&gt;</code> in a conversion (<code>f&gt;c</code>, <code>km&gt;mi</code>), no upper case</td>
+</tr>
+<tr>
+<td>locals</td>
+<td><code>{ a b }</code> at the start of a quote takes the values in stack order; use them when a word has more than two arguments or uses a value more than twice. Locals are dynamically scoped, so a local with the name of a word hides that word inside the calls made from it</td>
+</tr>
+<tr>
+<td>stack comments</td>
+<td>a <code>#</code> comment after the definition or above it lists the arguments, <code># x y w pct c</code> for a word whose effect is not obvious</td>
+</tr>
+<tr>
+<td>comments</td>
+<td><code>#</code> to the end of the line, one to three words (<code># dates</code>, <code># 0 is monday</code>), above the group of definitions or beside a line</td>
+</tr>
+<tr>
+<td>strings</td>
+<td>double quotes; <code>\n</code>, <code>\t</code>, <code>\e</code>, <code>\w</code> and <code>\A</code> are the escapes</td>
+</tr>
+<tr>
+<td>data</td>
+<td>a list is a quote that is not run: <code>[ 3 1 2 ]</code>, <code>[ [ &quot;a&quot; &quot;b&quot; ] ]</code> as the body of a word that returns a list</td>
+</tr>
+<tr>
+<td>help</td>
+<td>every word, including helpers, has an entry in <code>kernel/help.c</code> (a root word without one is reported by <code>@docs</code>); a helper goes in the <code>helpers</code> group</td>
+</tr>
+</tbody>
+</table>
+<p>A unit file is plain text, so it can be typed into a prompt as well. When a root word is changed, check it twice in <code>build/host</code>, since the second run is the one the JIT compiles, and look at it in QEMU if it draws on the screen.</p>
+<h3 id="the-help-pages">The help pages</h3>
+<p>The pages in <code>doc/*.md</code> are linked into the kernel by the Makefile: each file is written to <code>build/docfs.bin</code> after a header line <code>#&gt;&gt; name</code> where the name is the file name without <code>.md</code>. <code>make doccheck</code> checks their links. They are read by the pager in <code>kernel/doc.c</code>, which handles <code>#</code>, <code>##</code> and <code>###</code> headings, paragraphs, lists, tables, indented code and the links <code>[text](page.html)</code>, <code>[word](#)</code>, <code>[line](#)</code>. The pages are the in-system version of the site&#x27;s pages.</p>
+<h2 id="reporting-bugs-and-sending-patches">Reporting bugs and sending patches</h2>
+<h3 id="a-bug-report">A bug report</h3>
+<p>Bugs go on the <a href="https://github.com/texivi/Subverge/issues">issue tracker</a>, one bug per issue (see <a href="bugs.html">bugs</a>). A report that a developer can act on contains:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>How to get it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the version</td>
+<td><code>sys</code> shows the OS, kernel and shell versions; for a source build, <code>git rev-parse --short HEAD</code> as well</td>
+</tr>
+<tr>
+<td>the exact line</td>
+<td>copy it; a screenshot shows it with the error and the tab bar</td>
+</tr>
+<tr>
+<td>the exact error</td>
+<td>the red text, including a fault message with its <code>rip</code> and address</td>
+</tr>
+<tr>
+<td>what was expected</td>
+<td>one sentence</td>
+</tr>
+<tr>
+<td>the QEMU command line, the QEMU version</td>
+<td><code>qemu-system-x86_64 --version</code>; many boot and display problems come from a flag</td>
+</tr>
+<tr>
+<td>live ISO or installed disk, and how the disk is attached</td>
+<td><code>sys</code> shows which; <code>drives</code> lists what the kernel found</td>
+</tr>
+<tr>
+<td>whether it happens after a fresh boot, with no disk</td>
+<td>the saved root and worlds of a disk can cause it</td>
+</tr>
+<tr>
+<td>the theme and the tab, when it is about colours or the tab bar</td>
+<td></td>
+</tr>
+<tr>
+<td>the result of <code>jit-off</code> and the line again, for a wrong value from a word that has run more than once</td>
+<td>the compiled code is used from the second run</td>
+</tr>
+<tr>
+<td>the result in <code>build/host</code>, when the bug is in the language</td>
+<td><code>printf &#x27;the line\n&#x27; | build/host</code> and <code>@screen</code></td>
+</tr>
+</tbody>
+</table>
+<p>For a fault, add the <code>rip</code> resolved with <code>gdb -batch -ex &#x27;info symbol 0x...&#x27; build/ordinal.elf</code> against the ordinal.elf of the same build. For a line that hangs, say whether Ctrl-C and F1 to F4 worked.</p>
+<h3 id="a-patch">A patch</h3>
+<p>A patch is a pull request on <a href="https://github.com/texivi/Subverge">github.com/texivi/Subverge</a>. Before sending:</p>
+<ol>
+<li>The change builds with <code>make</code> without warnings and with <code>make host</code>.</li>
+<li><code>printf &#x27;@docs\n&#x27; | build/host</code> prints <code>0 problems</code>.</li>
+<li><code>make stress</code> runs with the lines that exercise the change.</li>
+<li><code>make doccheck</code> prints <code>0 problems</code> when pages in <code>doc/</code> changed.</li>
+<li>A change in behaviour has a line that shows it in the description, and the QEMU test or the screenshot where the change is visible.</li>
+<li>A new or changed word has its entry in <code>kernel/help.c</code>, its page text in <code>doc/</code> if the page lists it, and its row in the <a href="all-words.html">all words</a> page of the website.</li>
+<li>A change that touches <code>boot/</code> or the interrupt code is tested in QEMU with <code>-no-reboot</code>, since the host harness does not run it.</li>
+<li>The code follows the conventions above: 4 spaces, one to three word comments, <code>static</code> functions, <code>b_</code> names for built-ins, error messages as one lower case sentence.</li>
+</ol>
+<p>The commit message of a patch is a short imperative line.</p>
+<h2 id="pull-requests">Pull requests</h2>
+<p>Open a pull request on <a href="https://github.com/texivi/Subverge">GitHub</a>. Describe the change, include the line you tested it with, and make sure <code>make stress</code> passes and the docs check prints <code>0 problems</code>. A change that adds or alters a word changes the help table and the <a href="all-words.html">all words</a> page in the same request, and a change that alters behaviour changes the page that describes it.</p>
+<p>Keep to the style of the file you are editing: its names, its comment density and its habits. The C is plain C11 with no macros that hide control flow, comments are one to three words, and code does not use anything the freestanding environment lacks.</p>
+<h2 id="licence">Licence</h2>
+<p>Subverge is released under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL v3</a>. A contribution is released under the same licence.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

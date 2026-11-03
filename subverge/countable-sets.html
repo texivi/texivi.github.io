@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Countable sets - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="countable-sets">Countable sets</h1>
+<p>A set is &quot;countable&quot; if you can put it&#x27;s members in a list so that every member has a place in the list. Whole numbers, pairs of numbers and fractions are all countable, and the size of each is <a href="aleph-null.html">ℵ₀</a>. This page builds those lists and shows how <code>pair</code>, <code>unpair</code> and <code>rational</code> find the place of a member.</p>
+<h2 id="whole-numbers">Whole numbers</h2>
+<p>The whole numbers need a list that reaches in both directions. Start at 0 and alternate: 0, 1, −1, 2, −2, 3, and so on. The number at position n is −n/2 when n is even and (n+1)/2 when n is odd. <code>pairing</code> prints this column (<a href="demos.html">demos</a>).</p>
+<pre><code>pairing
+</code></pre>
+<p>Every whole number is somewhere in the list: k &gt; 0 at position 2k−1, and k &lt; 0 at position −2k.</p>
+<h2 id="pairs">Pairs</h2>
+<p>A table with a row for every natural number and a column for every natural number cannot be read row by row, since the first row never ends and the second row would never be reached. It can be read along diagonals. The first diagonal is the single cell (0, 0). The second has two cells, the third has three, and each diagonal is finite, so each cell is reached after finitely many steps.</p>
+<pre><code class="language-text">pair   0   1   2   3
+0      0   2   5   9
+1      1   4   8  13
+2      3   7  12  18
+3      6  11  17  24
+</code></pre>
+<p><code>a b pair</code> gives the position of the cell in row a and column b in this order:</p>
+<pre><code>0 0 pair .              0
+1 0 pair .              1
+0 1 pair .              2
+3 4 pair .              32
+</code></pre>
+<p>The formula is (a+b)(a+b+1)/2 + b. The first part counts the cells on the diagonals before the one the cell is on, and b is the place of the cell along its own diagonal. This is Cantor&#x27;s pairing function. Two different cells never get the same position, and every position belongs to some cell.</p>
+<p><code>n unpair</code> goes the other way and leaves the row and then the column, with the column on top of the stack:</p>
+<pre><code>32 unpair . .           4 and then 3
+</code></pre>
+<p>Both words work on any natural number, so <code>n unpair pair</code> is always <code>n</code>.</p>
+<p>The pairs of natural numbers have the size ℵ₀ · ℵ₀, and the list shows that this is ℵ₀:</p>
+<pre><code>aleph0 aleph0 * .       ℵ₀
+</code></pre>
+<h2 id="fractions">Fractions</h2>
+<p>A positive fraction is a pair of natural numbers, so the fractions can be listed by listing pairs and dropping the ones that repeat a value, since 1/2 and 2/4 are the same number. The Calkin-Wilf order lists every positive fraction exactly once. The first terms are</p>
+<pre><code class="language-text">1/1  1/2  2/1  1/3  3/2  2/3  3/1  1/4  4/3  3/5
+</code></pre>
+<p><code>n rational</code> leaves the n-th fraction as a numerator and a denominator, with the denominator on top. Positions start at 1.</p>
+<pre><code>1 rational . .          1 and 1
+7 rational . .          1 and 3, which is 3/1
+100 rational . .        19 and 7, which is 7/19
+</code></pre>
+<p><code>rationals</code> prints the first fifteen (<a href="demos.html">demos</a>).</p>
+<p>The numerator of the n-th fraction is the n-th term of Stern&#x27;s diatomic sequence, <code>n fusc</code>, and the denominator is the next term. The sequence follows two rules. Its value at 2n is its value at n, and its value at 2n+1 is the sum of its values at n and at n+1. <code>fusc</code> applies the rules to the binary digits of n, so a position near a million takes about twenty steps.</p>
+<pre><code>5 fusc .                3
+6 fusc .                2
+7 fusc .                3
+</code></pre>
+<p>A fraction can sit between any two others, so the list does not keep the fractions in order of size. A list that went from the smallest upwards could not exist, since there is no smallest positive fraction.</p>
+<h2 id="larger-collections">Larger collections</h2>
+<p>Countable sets can be combined without leaving ℵ₀. The union of two countable sets is countable. So is the union of countably many countable sets, by the pairing above with the number of the set as the row. A finite list of natural numbers can be given one number by prime factorisation, as 2^a · 3^b · 5^c and so on, and a text is a finite list of numbers, so every text that can be typed has a position in one list. Every omega program is a text, and the set of omega programs has the size ℵ₀.</p>
+<p>Because the programs are countable, most real numbers have no program that prints their digits. There are 2^ℵ₀ real numbers and only ℵ₀ programs (<a href="uncountable-sets.html">uncountable-sets</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

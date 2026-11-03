@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The hotel - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="the-hotel">The hotel</h1>
+<p>&quot;Hilbert&#x27;s hotel&quot; is a thought experiment: a hotel with a room for every whole number, 1, 2, 3 and so on without end, and every room is full. This page uses it to show what happens to the sizes in <a href="aleph-null.html">aleph-null</a> when a full set takes in more members. <code>hotel</code> prints the first rows of the first and the last step (<a href="demos.html">demos</a>).</p>
+<pre><code>hotel
+</code></pre>
+<h2 id="a-full-hotel">A full hotel</h2>
+<p>Every room has a guest. In an ordinary hotel a new guest would be turned away. Here the guest in room n moves to room n+1, for every n at once. Room 1 is empty afterwards and every old guest still has a room, since n+1 is a room whenever n is. The new guest gets room 1.</p>
+<pre><code class="language-text">guest   before   after
+1       1        2
+2       2        3
+3       3        4
+</code></pre>
+<p>This is the pairing of the rooms with the rooms from 2 up, and it is the reason <code>aleph0 1 +</code> is <code>aleph0</code>. A set that is full can take one more member and keep it is size.</p>
+<p>For k new guests, every guest moves from room n to room n+k, which leaves rooms 1 to k empty. Any whole number k works.</p>
+<h2 id="infinitely-many-new-guests">Infinitely many new guests</h2>
+<p>When infinitely many guests arrive, moving up by a fixed number does not help. Moving every guest from room n to room 2n does. Every even room is taken by an old guest, and no old guest is without a room. All the odd rooms are empty, there are infinitely many of them, and the new guests take rooms 1, 3, 5 and so on.</p>
+<p>This is <code>aleph0 aleph0 +</code> being <code>aleph0</code>: two copies of the natural numbers side by side are as many as one.</p>
+<h2 id="infinitely-many-buses">Infinitely many buses</h2>
+<p>Infinitely many buses arrive, each with infinitely many seats, all taken. A guest is named by the bus b and the seat s, both counted from 0. Cantor&#x27;s pairing from <a href="countable-sets.html">countable-sets</a> turns each (b, s) into a number, and no two guests get the same one:</p>
+<pre><code>0 0 pair .              0
+0 1 pair .              2
+1 0 pair .              1
+2 1 pair .              7
+</code></pre>
+<p>In an empty hotel the guest from bus b and seat s takes room (b s pair) + 1. In a full hotel the old guests first move from room n to room 2n, which frees the odd rooms, and the guest from bus b and seat s takes room 2·(b s pair) + 1. Every odd room is used once.</p>
+<p>All of this is <code>aleph0 aleph0 *</code> being <code>aleph0</code>. <code>hotel</code> prints the first buses and seats of the empty case.</p>
+<p>The hotel stays countable, and it&#x27;s guests can be listed in the order of their rooms.</p>
+<h2 id="where-it-stops">Where it stops</h2>
+<p>A hotel with a room for every natural number has the size ℵ₀, and a set of the size 2^ℵ₀ does not fit in it. If one guest came for each real number, no assignment of rooms would work, since the real numbers cannot be paired off with the room numbers (<a href="uncountable-sets.html">uncountable-sets</a>).</p>
+<h2 id="the-hotel-and-ordinals">The hotel and ordinals</h2>
+<p>The first move, from room n to room n+1, is the same operation as putting a new member in front of a list of positions. It shows the difference between <code>1 omega +</code> and <code>omega 1 +</code>:</p>
+<pre><code>1 omega + .             ω
+omega 1 + .             ω+1
+</code></pre>
+<p>A member put in front moves every other member one place up, and the result is again a list of the natural numbers, so it ends where they end. A member put after all of them has no room number among the natural numbers. It gets the position ω, the first position after every natural number. In position order ω+1 is larger than ω, and in size the two are the same.</p>
+<pre><code>1 omega + omega = .     1
+omega 1 + omega = .     0
+omega 1 + card .        ℵ₀
+</code></pre>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

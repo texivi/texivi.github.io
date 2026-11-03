@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saving - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="saving">Saving</h1>
+<p>An installed Subverge saves after every line that changes something, without being asked, so a reboot or a power cut loses at most the line that was running.</p>
+<p>The live ISO saves nothing. Run <code>install</code> first to keep your work. On the live ISO <code>home</code> gives <code>-1</code>, and <code>save</code> fails.</p>
+<h2 id="when-saving-happens">When saving happens</h2>
+<p>On an installed disk, these are saved right away:</p>
+<ul>
+<li>A line that changed the world of a tab. Only the slot of that tab is written. A line that leaves the stack and the definitions as they were, such as <code>words</code> or <code>&quot;hi&quot; say</code>, writes nothing.</li>
+<li>A <code>back</code>, because it changes the world back.</li>
+<li>A root edit that builds. The whole of root is written to its slot. An edit that fails to build writes nothing (<a href="root.html">root</a>).</li>
+<li>A change to phi. The whole of phi is written to its slot.</li>
+<li>A theme or logo change, which rewrites only the header sector (<a href="themes.html">themes</a>, <a href="logos.html">logos</a>).</li>
+<li><code>install</code>, which writes root, all four tabs, phi, the current theme and the current logo to the new drive.</li>
+</ul>
+<p><code>save</code> writes root, phi and all four tabs at once. You rarely need it, because everything is already saved, but it does no harm.</p>
+<p><code>home</code> gives the number of the drive that Subverge is installed on and saves to.</p>
+<h2 id="slots">Slots</h2>
+<p>The saved state lives in five slots of 1 MiB at fixed places on the drive: slot 0 holds root and slots 1 to 4 hold the four tabs. A sixth slot of 512 KiB holds <a href="phi.html">phi</a>. A small header in front of them records the length and checksum of each slot and a count of saves. See <a href="disk-layout.html">disk layout</a> for the exact positions.</p>
+<p>Saving a tab rewrites only the slot of that tab and the header. The other slots are not touched.</p>
+<h2 id="whatx27s-in-a-slot">What&#x27;s in a slot</h2>
+<p>A slot holds plain omega source. A tab is written as its definitions, oldest first, followed by its stack on one line:</p>
+<pre><code># saved world
+[ dup * ] :sq2
+[ { a b } a a * b b * + ] :hyp
+&quot;notes&quot; :title
+1 2 3
+</code></pre>
+<p>Only the newest definition of each name is written, and names removed with <code>forget</code> are left out, so the saved text is as short as it can be.</p>
+<p>Root is written as the source of each unit after its <code>#&gt;&gt; name</code> header line, in order. This is the same format as the <code>root/</code> files in the source tree.</p>
+<p>At boot, the slot of root is built first. Then the slot of each tab is run as if it had been typed at the prompt of that tab. A saved world is therefore always one that omega can read back.</p>
+<h2 id="values-that-survive">Values that survive</h2>
+<p>A value survives only if it can be written as source and read back. These can:</p>
+<ul>
+<li>integers and bignums;</li>
+<li>strings, with escapes for newlines, tabs, escape characters and the omega and aleph symbols;</li>
+<li>quotes and lists, nested to any depth;</li>
+<li>symbols (<code>&#x27;name</code>);</li>
+<li>ordinals, written back as arithmetic such as <code>omega 2 ^ omega +</code>;</li>
+<li>cardinals, written as <code>0 aleph</code> or <code>2 0 aleph ^</code>.</li>
+</ul>
+<p>Two things change on the way. Identity is lost: two definitions that held the very same quote hold two equal quotes after a reboot (<a href="values.html">values and objects</a>). And memory from <code>alloc</code> is not saved, so an address you kept on the stack points at whatever is in memory there after the reboot.</p>
+<h2 id="not-saved">Not saved</h2>
+<ul>
+<li>the <a href="back.html">back</a> history and the prompt history;</li>
+<li>tab titles and screen contents;</li>
+<li>memory from <code>alloc</code>, and anything written with <code>poke</code> or <code>out</code>;</li>
+<li>the compiled code of the JIT, which is built again as code runs.</li>
+</ul>
+<p>After a reboot every tab starts with an empty history, its saved stack and definitions, and the title <code>omega</code>.</p>
+<h2 id="theme">Theme</h2>
+<p>The theme is saved with the system state and used at the next boot (<a href="themes.html">themes</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

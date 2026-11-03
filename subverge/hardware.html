@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hardware - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="hardware">Hardware</h1>
+<p>This page says which machines Subverge has been tried on. Subverge is developed and tested in <a href="qemu.html">QEMU</a> only. It is written for the hardware QEMU emulates, which is a PC from the late 1990s with a 64-bit CPU. Many real machines still provide that hardware through compatibility modes in their firmware, so Subverge may run on them, but it has not been tried.</p>
+<blockquote>
+<p><strong>Warning:</strong> Every line of omega runs in ring 0 with access to all memory, all I/O ports and every disk the kernel can see. On a real machine a wrong <code>poke</code>, <code>out</code> or <code>install-to</code> affects real hardware and real data. Use a machine with nothing on it you want to keep.</p>
+</blockquote>
+<h2 id="what-subverge-needs">What Subverge needs</h2>
+<p><strong>An x86-64 CPU.</strong> Any 64-bit Intel or AMD CPU qualifies. Subverge uses one core. The kernel is compiled without SSE, so no particular extensions are required.</p>
+<p><strong>BIOS booting.</strong> The ISO boots through GRUB in BIOS mode, and an installed disk boots through Subverge&#x27;s own MBR and stage 2, which use BIOS disk services (<a href="boot.html">boot</a>). Firmware that only boots UEFI can&#x27;t start it, which includes most recent laptops. Many desktops can still enable a compatibility support module, often called CSM or legacy boot.</p>
+<p><strong>VGA text mode.</strong> All output goes to the 80 by 25 text screen at <code>0xB8000</code>, and the kernel reprograms the VGA palette and font registers directly. Most graphics cards still implement text mode when the firmware boots in legacy mode. UEFI-only setups often leave the card in a graphics mode where writes to <code>0xB8000</code> show nothing. Graphics mode, started with <code>gfx</code>, uses the Bochs display registers of QEMU&#x27;s standard VGA card.</p>
+<p><strong>A PS/2 keyboard controller.</strong> Keys are read from ports <code>0x60</code> and <code>0x64</code> (<a href="keyboard.html">keyboard</a>). Machines without a PS/2 port usually emulate one for USB keyboards when legacy USB support is enabled in the firmware. Without it, Subverge boots and draws it&#x27;s screen but can&#x27;t be typed at.</p>
+<p><strong>The PIT and the 8259 PICs</strong> for the timer and interrupts. Every PC chipset still emulates these.</p>
+<p><strong>IDE disks</strong>, reached through the legacy ports at <code>0x1F0</code> and <code>0x170</code> (<a href="drives.html">drives</a>). SATA controllers in IDE or legacy mode present their disks there. In AHCI mode, which is the usual default, <code>disks</code> finds nothing. NVMe and USB disks are never visible. The live ISO doesn&#x27;t need a disk at all.</p>
+<p><strong>RAM</strong>: 64 MiB or more. The kernel uses at most 64 MiB for its heap and maps the first 4 GiB.</p>
+<h2 id="trying-it">Trying it</h2>
+<ol>
+<li><p>Pick a machine whose disks hold nothing you want to keep, or remove the disks.</p>
+</li>
+<li><p>Enable legacy or CSM boot in the firmware, and legacy USB support if the keyboard is USB.</p>
+</li>
+<li><p>Write the ISO to a USB stick:</p>
+<pre><code> # dd if=subverge.iso of=/dev/sdX bs=4M conv=fsync
+</code></pre>
+<p>replacing <code>/dev/sdX</code> with the stick, and double-check that name before pressing Enter.</p>
+</li>
+<li><p>Boot from the stick.</p>
+</li>
+<li><p>Don&#x27;t run <code>install</code>. The live system saves nothing and never writes to a disk unless asked.</p>
+</li>
+</ol>
+<p>Then try a few things: type at the prompt, switch tabs, run <code>sys</code>, <code>top</code>, <code>pcils</code> and <code>disks</code>, and leave <code>mandel</code> running for a while.</p>
+<h2 id="reporting-the-result">Reporting the result</h2>
+<p>Reports from real machines are welcome whether it works or not. Include:</p>
+<ul>
+<li>the machine&#x27;s make and model, or the mainboard;</li>
+<li>the firmware settings you changed;</li>
+<li>how far it got: GRUB menu, Subverge screen, keyboard working, <code>disks</code> output;</li>
+<li>a photograph of the screen if anything went wrong.</li>
+</ul>
+<p>Open an <a href="bugs.html">issue</a> or message <code>texivi</code> on Discord.</p>
+<h2 id="common-failures">Common failures</h2>
+<table>
+<thead>
+<tr>
+<th>What you see</th>
+<th>Likely cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the machine skips the USB stick</td>
+<td>UEFI-only boot, or the stick wasn&#x27;t written as a raw image</td>
+</tr>
+<tr>
+<td>GRUB starts, then a black screen</td>
+<td>the graphics card isn&#x27;t in text mode</td>
+</tr>
+<tr>
+<td>Subverge&#x27;s screen appears, keys do nothing</td>
+<td>no PS/2 emulation for the USB keyboard</td>
+</tr>
+<tr>
+<td><code>disks</code> finds nothing</td>
+<td>the SATA controller is in AHCI mode</td>
+</tr>
+<tr>
+<td>a red screen saying <code>panic</code></td>
+<td>a fault during boot; photograph it and report it</td>
+</tr>
+</tbody>
+</table>
+<h2 id="other-virtual-machines">Other virtual machines</h2>
+<p>VirtualBox set up with an IDE (PIIX) controller and BIOS firmware provides everything Subverge needs and has a reasonable chance of working, and so does VMware with an IDE disk. Hyper-V generation 2 machines are UEFI-only, and generation 1 machines are untested. In any of them, use an IDE disk controller and legacy BIOS firmware.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part 13: Line editing - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="part-13-line-editing">Part 13: Line editing</h1>
+<p>The prompt edits a line with Control and Alt keys. C- is Control and M- is Alt, so C-a is Ctrl-A and M-f is Alt-F. DEL is Backspace, RET is Enter and TAB is Tab (<a href="keys.html">keys</a>).</p>
+<p>Type this line at the prompt, without pressing RET:</p>
+<pre><code>1 2 + 3 4 + * 5 6 + *
+</code></pre>
+<p>C-a moves to the start of the line and C-e to the end. M-f and M-b move over words, C-f and C-b over single characters. Press C-a, then M-f twice, and the cursor sits after <code>2</code>.</p>
+<h2 id="killing-and-yanking">Killing and yanking</h2>
+<p>Deleting text with C-k, C-u, C-w, M-d or M-DEL is called killing, because the text is kept on the kill ring. C-k kills from the cursor to the end of the line. C-y yanks it back where the cursor is, and M-y right after C-y swaps the yanked text for an older kill. The ring holds the last eight kills.</p>
+<p>Two kills in a row with no other key between them make one piece. Put the cursor at the start of <code>1 2 +</code>, press M-d three times, and then C-y: all three words come back together.</p>
+<p>DEL and C-d delete one character and keep nothing.</p>
+<h2 id="small-edits">Small edits</h2>
+<p>C-t swaps the two characters at the cursor. M-u, M-l and M-c turn the next word into capitals, small letters or a capitalized word. C-_ undoes the last change to the line, and again undoes the one before it. A run of typed letters counts as one change.</p>
+<h2 id="earlier-lines">Earlier lines</h2>
+<p>C-p and C-n step back and forward through the last 16 lines of the tab, and M-&lt; and M-&gt; go to the oldest line and back to the empty one. C-r searches them for the text you type, newest first: type <code>+</code>, and the last line with a plus appears. C-r again goes to the next older match, C-s turns around, C-g puts the line back as it was, and any other key leaves the match in the line. RET leaves it there without running it.</p>
+<h2 id="completion">Completion</h2>
+<p>TAB completes the word before the cursor. Type <code>them</code> and press TAB, and it becomes <code>theme</code>, the part that <code>theme</code>, <code>theme@</code> and <code>themes</code> share. Press TAB again and the first of them appears, and each further TAB shows the next.</p>
+<p>C-c or C-g throws the line away. See <a href="prompt.html">prompt</a> for completion, history and the length of a line.</p>
+<p><a href="tour-14.html">Next: Part 14</a>   <a href="tour-12.html">Back: Part 12</a>   <a href="tour.html">The tours</a></p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

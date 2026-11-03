@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JIT - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="jit">JIT</h1>
+<p>The JIT compiles a quote to x86-64 machine code the second time it runs. The first run goes through the interpreter, and later runs use the compiled code. There is nothing to configure. <a href="dis.html">dis</a> shows the generated code.</p>
+<h2 id="looking-at-it">Looking at it</h2>
+<pre><code>jit                 is it on, and what has it compiled
+jit-off  jit-on     turn it off and on
+&#x27;fib compile        compile now, leaves address and length
+&#x27;fib addr           the address of its code
+addr n dis          disassemble n instructions at addr
+addr len disr       disassemble a range of bytes
+&#x27;fib jitdis         compile and disassemble all of it
+&#x27;fib xray           source, then machine code
+[ ... ] bench       time a quote with the JIT off, then on
+</code></pre>
+<p><code>xray</code> is the most useful of these. It shows the word&#x27;s source and then every instruction the JIT made for it, so you can see which words were inlined and which became calls.</p>
+<p><code>bench</code> runs a quote with the JIT off and then on and shows both times. On a recursive <code>fib</code>, it is about 80 ticks interpreted and 4 compiled, twenty times faster.</p>
+<h2 id="what-it-generates">What it generates</h2>
+<p>The JIT makes call-threaded x86-64. Each item in a quote becomes either inline code or a call back into the interpreter. Simple words such as <code>+ - * &amp; | xor</code>, the comparisons and <code>dup over drop swap nip not neg</code> are inlined, each with a check that falls back to the real built-in when the values are not plain integers. Arithmetic that overflows also falls back, which is how bignums keep working in compiled code.</p>
+<p><code>fib</code> goes from about 80 ticks to 4, since it is all comparisons, arithmetic and an <code>if</code> with literal quotes. A loop that spends it is time in <code>say</code> speeds up much less, since <code>say</code> is still <code>say</code>. Compiled loops still check for Ctrl-C and let the <a href="gc.html">garbage collector</a> run.</p>
+<h2 id="when-it-compiles">When it compiles</h2>
+<p>A quote counts how many times it is been run. On the second run it is compiled, and the code is attached to the quote. Quotes that cannot be compiled are marked so it does not try again, and <code>compile</code> on one fails.</p>
+<h2 id="invalidation">Invalidation</h2>
+<p>Compiled code assumes that <code>+</code> still means <code>+</code>. When a definition shadows a built-in or <a href="root.html">root</a> is rebuilt, older compiled code is no longer run and the quote is compiled again the next time it is needed. Old code is freed only when no task is inside compiled code, since another <a href="tabs.html">tab</a> might be running it.</p>
+<p>A root rebuild retires the code of every unit it replaced. A quote freed by the collector retires it&#x27;s code the same way.</p>
+<h2 id="turning-it-off">Turning it off</h2>
+<p><code>jit-off</code> makes everything run in the interpreter. Results are identical either way, so any difference in behaviour is a JIT bug. Keep the <code>xray</code> output of the word.</p>
+<h2 id="mandel">mandel</h2>
+<p><code>mandel</code> is the best real program to watch it on, because its inner loop, <code>mb-iter</code>, is almost nothing but arithmetic. Try <code>&#x27;mb-iter xray</code> and <code>[ -32768 0 2816 40 mandel-at ] bench</code>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

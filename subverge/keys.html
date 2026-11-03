@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key Map - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="key-map">Key Map</h1>
+<p>This page lists every key. C- means Control and M- means Alt, so C-k is Ctrl-K and M-f is Alt-F. DEL is Backspace, RET is Enter, SPC is Space and TAB is Tab. A sequence such as C-x o means two keys typed one after the other.</p>
+<h2 id="everywhere">Everywhere</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1 to F4, Alt-1 to Alt-4</td>
+<td>show tab 1, 2, 3 or 4</td>
+</tr>
+<tr>
+<td>C-c, C-g</td>
+<td>stop the line the tab is running</td>
+</tr>
+<tr>
+<td>C-x o</td>
+<td>move to the other window</td>
+</tr>
+<tr>
+<td>C-x 2, C-x 3</td>
+<td>split the window, stacked or side by side</td>
+</tr>
+<tr>
+<td>C-x 1</td>
+<td>keep only this window</td>
+</tr>
+<tr>
+<td>C-x 0</td>
+<td>close this window</td>
+</tr>
+<tr>
+<td>Super-Enter</td>
+<td>open a window, see <a href="tabs.html">tabs</a></td>
+</tr>
+<tr>
+<td>Super-W</td>
+<td>close this window</td>
+</tr>
+<tr>
+<td>Super-arrows</td>
+<td>move to the window in that direction</td>
+</tr>
+</tbody>
+</table>
+<p>The system handles these keys itself, so they work even when every tab is busy. After C-x, the top bar shows that a key sequence has begun. C-g cancels the sequence.</p>
+<h2 id="at-the-prompt">At the prompt</h2>
+<p>The kill ring remembers the last eight pieces of text that were killed. If you kill twice in a row, the second piece is added to the first.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RET</td>
+<td>run the line</td>
+</tr>
+<tr>
+<td>C-a, Home</td>
+<td>start of the line</td>
+</tr>
+<tr>
+<td>C-e, End</td>
+<td>end of the line</td>
+</tr>
+<tr>
+<td>C-b, Left</td>
+<td>back one character</td>
+</tr>
+<tr>
+<td>C-f, Right</td>
+<td>forward one character</td>
+</tr>
+<tr>
+<td>M-b, M-f</td>
+<td>back or forward one word</td>
+</tr>
+<tr>
+<td>C-p, Up</td>
+<td>the previous line from the history</td>
+</tr>
+<tr>
+<td>C-n, Down</td>
+<td>the next line from the history</td>
+</tr>
+<tr>
+<td>M-&lt;, M-&gt;</td>
+<td>the oldest line, or back to an empty one</td>
+</tr>
+<tr>
+<td>C-d, Delete</td>
+<td>delete the character at the cursor</td>
+</tr>
+<tr>
+<td>DEL</td>
+<td>delete the character before the cursor</td>
+</tr>
+<tr>
+<td>C-k</td>
+<td>kill to the end of the line</td>
+</tr>
+<tr>
+<td>C-u</td>
+<td>kill to the start of the line</td>
+</tr>
+<tr>
+<td>C-w, M-DEL</td>
+<td>kill the word before the cursor</td>
+</tr>
+<tr>
+<td>M-d</td>
+<td>kill the word after the cursor</td>
+</tr>
+<tr>
+<td>C-y</td>
+<td>yank the last kill</td>
+</tr>
+<tr>
+<td>M-y</td>
+<td>replace the yank with an older kill</td>
+</tr>
+<tr>
+<td>C-t</td>
+<td>swap the two characters at the cursor</td>
+</tr>
+<tr>
+<td>M-u, M-l, M-c</td>
+<td>upper case, lower case or capitalize the next word</td>
+</tr>
+<tr>
+<td>C-_</td>
+<td>undo the last change to the line</td>
+</tr>
+<tr>
+<td>C-l</td>
+<td>clear the screen and draw the prompt again</td>
+</tr>
+<tr>
+<td>C-r, C-s</td>
+<td>search the history, backward or forward</td>
+</tr>
+<tr>
+<td>TAB</td>
+<td>complete the name before the cursor</td>
+</tr>
+<tr>
+<td>M-x</td>
+<td>run a word by name, with completion</td>
+</tr>
+<tr>
+<td>C-c, C-g</td>
+<td>throw the line away</td>
+</tr>
+</tbody>
+</table>
+<p>A &quot;word&quot; here is a run of characters that are not spaces, brackets or quotes, so <code>kill-line</code> is one word. In a search, typing narrows the match, C-r and C-s move to the next one, DEL shortens the text, C-g puts the line back as it was, and any other key ends the search with the match in the line. RET ends the search without running the line.</p>
+<p>See <a href="prompt.html">prompt</a> for completion, history and line length.</p>
+<h2 id="help-keys">Help keys</h2>
+<p>C-h waits for a second key.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C-h k</td>
+<td>press a key and see what it does</td>
+</tr>
+<tr>
+<td>C-h f</td>
+<td>describe a word, as <code>&#x27;name help</code> does</td>
+</tr>
+<tr>
+<td>C-h a</td>
+<td>search the help text, as <code>apropos</code> does</td>
+</tr>
+<tr>
+<td>C-h b</td>
+<td>open the list of every binding</td>
+</tr>
+<tr>
+<td>C-h i</td>
+<td>open the <a href="help.html">help pages</a></td>
+</tr>
+</tbody>
+</table>
+<p><code>describe-key</code> is the word behind C-h k. It prints what a key does at the prompt, in the pager and in the editor, and the quote of any binding you made.</p>
+<h2 id="in-the-pages">In the pages</h2>
+<p><code>docs</code> opens the index and <code>&quot;name&quot; doc</code> opens a page.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TAB, n</td>
+<td>the next link</td>
+</tr>
+<tr>
+<td>BTAB, p</td>
+<td>the previous link</td>
+</tr>
+<tr>
+<td>RET</td>
+<td>follow the link, or run the selected code line</td>
+</tr>
+<tr>
+<td>SPC, C-v, Page Down</td>
+<td>scroll a screen</td>
+</tr>
+<tr>
+<td>M-v, Page Up</td>
+<td>scroll a screen back</td>
+</tr>
+<tr>
+<td>C-n, Down</td>
+<td>scroll a line</td>
+</tr>
+<tr>
+<td>C-p, Up</td>
+<td>scroll a line back</td>
+</tr>
+<tr>
+<td>M-&lt;, &lt;, Home</td>
+<td>the top</td>
+</tr>
+<tr>
+<td>M-&gt;, &gt;, End</td>
+<td>the bottom</td>
+</tr>
+<tr>
+<td>l, DEL</td>
+<td>back to the last page</td>
+</tr>
+<tr>
+<td>t</td>
+<td>the index</td>
+</tr>
+<tr>
+<td>c</td>
+<td>close the pager and show the credits</td>
+</tr>
+<tr>
+<td>G</td>
+<td>close the pager and show the gallery</td>
+</tr>
+<tr>
+<td>g</td>
+<td>go to a page by name</td>
+</tr>
+<tr>
+<td>C-s, C-r</td>
+<td>search the page for text, forward or backward</td>
+</tr>
+<tr>
+<td>M-x</td>
+<td>close the pager and run a word</td>
+</tr>
+<tr>
+<td>C-h b</td>
+<td>the list of bindings</td>
+</tr>
+<tr>
+<td>q, ESC, C-x C-c</td>
+<td>leave the viewer</td>
+</tr>
+</tbody>
+</table>
+<p>C-s and C-r ask for text on the bottom row. An empty answer repeats the last search. RET on a line of code closes the viewer and runs the line at the prompt.</p>
+<h2 id="in-the-editor">In the editor</h2>
+<p><a href="scrawl.html">scrawl</a> uses the same keys for moving, killing and searching. Its page has the list.</p>
+<h2 id="your-own-keys">Your own keys</h2>
+<p><code>bind</code> takes the name of a key and a quote, and runs the quote when you type that key at the prompt:</p>
+<pre><code>&quot;C-t&quot; [ &quot;dup &quot; insert ] bind
+</code></pre>
+<p>Now C-t types <code>dup </code> into the line. Write a key name as on this page: <code>&quot;C-k&quot;</code>, <code>&quot;M-u&quot;</code>, <code>&quot;&lt;up&gt;&quot;</code>, or a sequence that starts with C-x, such as <code>&quot;C-x C-t&quot;</code>. You cannot bind plain printable keys, because they type text, and you cannot bind C-h or RET.</p>
+<p>The quote can use the line being edited:</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>line@</code></td>
+<td><code>-- s</code>, the line</td>
+</tr>
+<tr>
+<td><code>line!</code></td>
+<td><code>s --</code>, replaces the line</td>
+</tr>
+<tr>
+<td><code>point@</code></td>
+<td><code>-- n</code>, the cursor position from 0</td>
+</tr>
+<tr>
+<td><code>point!</code></td>
+<td><code>n --</code>, moves the cursor</td>
+</tr>
+<tr>
+<td><code>insert</code></td>
+<td><code>s --</code>, types a string at the cursor</td>
+</tr>
+</tbody>
+</table>
+<pre><code>&quot;M-u&quot; [ line@ upper line! ] bind
+</code></pre>
+<p>makes M-u turn the whole line into capitals. These words only work inside a binding. If a binding prints something, the output stays above a new prompt, and the line you were editing comes back below it. A binding can run any line of code with <code>eval</code>, so this one shows the system information on M-s:</p>
+<pre><code>&quot;M-s&quot; [ &quot;sys&quot; eval ] bind
+</code></pre>
+<p>A binding runs on a copy of the stack, so whatever it leaves there is dropped. If it fails, the error is printed on the line below before the prompt comes back.</p>
+<p>A binding is a definition named <code>key:</code> plus the key, such as <code>key:C-t</code>, so it is saved with the <a href="world.html">world</a> of the tab like any other definition. A binding made in a <a href="root.html">root</a> unit works in every tab.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bind</code></td>
+<td><code>key q --</code>, binds the key</td>
+</tr>
+<tr>
+<td><code>unbind</code></td>
+<td><code>key --</code>, removes a binding of yours</td>
+</tr>
+<tr>
+<td><code>bindings</code></td>
+<td><code>--</code>, opens the list of every binding</td>
+</tr>
+<tr>
+<td><code>describe-key</code></td>
+<td><code>--</code>, waits for a key and says what it does</td>
+</tr>
+</tbody>
+</table>
+<pre><code>&quot;C-t&quot; unbind
+</code></pre>
+<h2 id="limits">Limits</h2>
+<ul>
+<li>The prompt has no mark and no region. C-w kills the word before the cursor, and C-u kills to the start of the line. <a href="scrawl.html">scrawl</a> has a mark and a region, and C-w kills the region there.</li>
+<li>C-x and C-h are the only prefix keys, and keys take no number argument.</li>
+<li>ESC does not work as the Meta key. Use Alt.</li>
+<li>The search at the prompt narrows as you type. The searches in the pager and in the editor ask for the whole text first and then jump to the match.</li>
+<li>C-x C-s and C-x C-c belong to the editor. C-x o, C-x 0, C-x 1, C-x 2 and C-x 3 work everywhere.</li>
+</ul>
+<h2 id="the-mouse">The mouse</h2>
+<p>A PS/2 mouse works on the text screen. The pointer is one cell with its colours swapped. A click on a tab title in the top bar switches to that tab, and a click in a window moves to it. In the page viewer, a click follows a link or runs a line of code, the wheel scrolls and a right click goes back. <code>mouse</code> gives the pointer cell in the current window and the buttons, and <code>mouse?</code> is 1 when a mouse was found (<a href="ps2.html">ps2</a>).</p>
+<h2 id="key-codes-in-programs">Key codes in programs</h2>
+<p>The codes that <code>key</code> gives are listed on the <a href="keyboard.html">keyboard</a> page.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

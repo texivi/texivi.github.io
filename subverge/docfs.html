@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the help pages live - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="where-the-help-pages-live">Where the help pages live</h1>
+<p>The help pages are not files on a disk. Each page is a text file in the <code>doc/</code> directory of the source, and the build links them into the kernel, so the pager finds them in memory. This is why the pages match the running build and are available on the live ISO.</p>
+<p>The pages are also members of the set <code>/doc</code> in <a href="phi.html">phi</a>, where they can be read but not changed.</p>
+<h2 id="reading-a-page">Reading a page</h2>
+<p><code>docs</code> opens the index of pages and <code>&quot;name&quot; doc</code> opens one by name, as in <code>&quot;prompt&quot; doc</code>. In the pager, Up, Down, PgUp, PgDn, Home and End scroll, and Space pages down. Tab selects the next link, Enter follows the selected link, Backspace goes back, and <code>q</code> or Esc leaves. Enter on a line of code closes the viewer and runs the line at the prompt.</p>
+<p>With a PS/2 mouse, a click follows a link or runs a code line, the wheel scrolls, and a right click goes back. <code>mouse?</code> is 1 when a mouse was found, and <code>mouse</code> leaves the pointer cell and the buttons (1 left, 2 right, 4 middle).</p>
+<h2 id="changing-a-page">Changing a page</h2>
+<p>A page cannot be changed in a running system. To change one, edit it is file and build the kernel again. An installed disk does not hold the pages, since they are not state: it holds root, the worlds of the shells and the theme, and the pages come from whatever kernel is booted (<a href="saving.html">saving</a>).</p>
+<h2 id="generated-pages">Generated pages</h2>
+<p>The index of words, the pages of the words and the pages of the groups are made when they are asked for, from the table that the <code>help</code> word uses (<a href="help.html">help</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

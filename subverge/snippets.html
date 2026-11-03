@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snippets - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="snippets">Snippets</h1>
+<p>&quot;Snippets&quot; is a list of small tasks with a short answer for each. Every answer is one line or one definition that you can type at the prompt as it is, and the result is shown under the code.</p>
+<h2 id="numbers">Numbers</h2>
+<p>Factorial, with bignums past 20:</p>
+<pre><code>[ { n } 1 n 1 + range 1 [ * ] fold ] :fact
+20 fact                 2432902008176640000
+25 fact                 15511210043330985984000000
+</code></pre>
+<p>Primes by trial division:</p>
+<pre><code>[ { n } n 2 &lt; [ 0 ] [ 2 n range [ n swap mod 0 = ] filter len 0 = ] if ] :prime?
+0 30 range [ prime? ] filter        [ 2 3 5 7 11 13 17 19 23 29 ]
+</code></pre>
+<p>This tests every divisor below <code>n</code>, which is fine for small numbers. <code>sieve</code> draws a faster method (<a href="games.html">games</a>).</p>
+<p>The mean of a list, rounded toward zero:</p>
+<pre><code>[ { l } l sum l len / ] :mean
+[ 2 4 9 ] mean          5
+</code></pre>
+<p>A fraction in lowest terms:</p>
+<pre><code>[ { a b } a b gcd { g } a g / b g / ] :simplify
+12 18 simplify          2 3
+</code></pre>
+<p>A number in binary, as a string:</p>
+<pre><code>[ { n } &quot;&quot; { s } [ n 0 &gt; ] [ n 2 mod str s cat -&gt;s n 2 / -&gt;n ] while s ] :bin
+10 bin                  &quot;1010&quot;
+</code></pre>
+<p><code>255 bases</code> prints decimal, hex, octal and binary in one go, and <code>hex</code> gives hex directly.</p>
+<h2 id="strings">Strings</h2>
+<p>Words of a sentence, ignoring repeated spaces:</p>
+<pre><code>&quot;a b  c&quot; &quot; &quot; split [ len 0 &gt; ] filter       [ &quot;a&quot; &quot;b&quot; &quot;c&quot; ]
+</code></pre>
+<p>Counting the occurrences of a word:</p>
+<pre><code>&quot;one two three two&quot; &quot; &quot; split [ &quot;two&quot; = ] filter len     2
+</code></pre>
+<p>Counting a character, by it is code:</p>
+<pre><code>[ { s c } 0 s [ c = [ 1 + ] when ] each ] :count-char
+&quot;banana&quot; 97 count-char  3
+</code></pre>
+<p>The same with <code>split</code>: <code>&quot;banana&quot; &quot;a&quot; split len 1 -</code> is also <code>3</code>.</p>
+<p>A palindrome test, ignoring case:</p>
+<pre><code>[ { s } s lower s lower reverse = ] :palindrome?
+&quot;Level&quot; palindrome?     1
+</code></pre>
+<p>Removing a character everywhere:</p>
+<pre><code>&quot;abcabc&quot; &quot;b&quot; &quot;&quot; replace     &quot;acac&quot;
+</code></pre>
+<p>Reading numbers from a line of text:</p>
+<pre><code>&quot;3,1,2&quot; &quot;,&quot; split [ &gt;num ] map sort         [ 1 2 3 ]
+&quot;  42 &quot; &gt;num 1 +                            43
+</code></pre>
+<p>Splitting a key from a value:</p>
+<pre><code>&quot;key: value&quot; &quot;: &quot; split     [ &quot;key&quot; &quot;value&quot; ]
+</code></pre>
+<p>Building output from values:</p>
+<pre><code>[ 1 2 3 ] [ str ] map &quot; + &quot; join            &quot;1 + 2 + 3&quot;
+&quot;x = &quot; 42 str cat say                       x = 42
+</code></pre>
+<h2 id="lists">Lists</h2>
+<p>Removing duplicates, keeping the first of each:</p>
+<pre><code>[ { l } [ ] { out } l [ { x } out x has not [ out x append -&gt;out ] when ] each out ] :unique
+[ 1 2 2 3 3 3 ] unique      [ 1 2 3 ]
+</code></pre>
+<p>Locals only live for the line or quote that binds them, so code that uses them accross several steps belongs in a definition.</p>
+<p>Scaling every item:</p>
+<pre><code>[ { l n } l [ n * ] map ] :scale
+[ 1 2 3 ] 10 scale      [ 10 20 30 ]
+</code></pre>
+<p>A list of records and a lookup:</p>
+<pre><code>[ [ &quot;ann&quot; 31 ] [ &quot;bob&quot; 27 ] ] :people
+people [ first &quot;bob&quot; = ] filter first 1 at  27
+</code></pre>
+<p>Totals with a local accumulator, when <code>sum</code> and <code>fold</code> do not fit:</p>
+<pre><code>0 { total } [ 1 2 3 ] [ total + -&gt;total ] each total        6
+</code></pre>
+<h2 id="the-stack">The stack</h2>
+<p>The whole stack as a list, without losing it:</p>
+<pre><code>depth list dup . spread
+</code></pre>
+<p>Clearing it:</p>
+<pre><code>empty
+</code></pre>
+<h2 id="loops">Loops</h2>
+<p>Counting with a local:</p>
+<pre><code>0 { i } [ i 5 &lt; ] [ i 1 + -&gt;i ] while i     5
+</code></pre>
+<p>Repeating until a key is pressed:</p>
+<pre><code>1 { going } [ going ] [ &quot;.&quot; write 10 sleep key? -1 = not [ 0 -&gt;going ] when ] while
+</code></pre>
+<p>Timing code:</p>
+<pre><code>[ 100000 [ ] times ] timeit
+</code></pre>
+<h2 id="screen">Screen</h2>
+<p>A line in a colour, then back to normal text:</p>
+<pre><code>12 color &quot;careful&quot; say 7 color
+</code></pre>
+<p>Text at a fixed position, without moving the cursor:</p>
+<pre><code>&quot;here&quot; 30 10 14 text
+</code></pre>
+<p>A full-screen loop that redraws twice a second until a key is pressed:</p>
+<pre><code>[ time hms 36 12 14 text ] watch
+</code></pre>
+<p>A box of <code>#</code> characters:</p>
+<pre><code>[ { x y w h } 0 h [ { i } 35 x y i + w 7 fill ] for ] :box
+10 5 20 4 box
+</code></pre>
+<h2 id="themes-and-the-logo">Themes and the logo</h2>
+<p>Switch the colours, and the logo with them:</p>
+<pre><code>&#x27;haelide theme
+&#x27;dusk theme
+</code></pre>
+<p>Change one colour until the next theme switch:</p>
+<pre><code>14 255 120 0 rgb
+</code></pre>
+<p>Draw <code>sys</code> with a logo of your own:</p>
+<pre><code>[ [ &quot; /\\ /\\&quot; &quot; (o.o)&quot; &quot;  &gt;^&lt;&quot; ] ] :logo-fox
+&#x27;fox logo
+sys
+</code></pre>
+<p>Change the name before the <code>@</code> for this tab:</p>
+<pre><code>[ &quot;me&quot; ] :user
+sys
+</code></pre>
+<p>See <a href="themes.html">themes</a> and <a href="logos.html">logos</a>.</p>
+<h2 id="help-pages">Help pages</h2>
+<pre><code>docs                        open the index
+&quot;tour&quot; doc                  open a page
+</code></pre>
+<h2 id="time">Time</h2>
+<pre><code>time                    year month day hour minute second
+date say                2026-10-19
+ticks hz /              seconds since boot
+uptime say              the same, as hours, minutes and seconds
+300 sleep               wait three seconds
+</code></pre>
+<h2 id="definitions-and-root">Definitions and root</h2>
+<p>A word that every tab sees and that survives reboots:</p>
+<pre><code>&quot;mine&quot; unit
+</code></pre>
+<p>then write the definitions in the editor, save with C-x C-s and leave with C-x C-c (<a href="units.html">units</a>).</p>
+<p>Trying a change to a root word in one tab only:</p>
+<pre><code>&#x27;top edit
+</code></pre>
+<p>makes a private copy that hides the root one in this tab. <code>&#x27;top forget</code> removes the copy again (<a href="names.html">names</a>).</p>
+<h2 id="machine">Machine</h2>
+<p>The first 16 bytes of the screen memory, which hold the tab bar:</p>
+<pre><code>0 16 range [ 0xB8000 + peek ] map
+</code></pre>
+<p>The CPU&#x27;s vendor string:</p>
+<pre><code>0 cpuid { a b c d } b reg&gt;str d reg&gt;str cat c reg&gt;str cat
+</code></pre>
+<p>All PCI devices from one vendor:</p>
+<pre><code>pci [ 3 at 0x8086 = ] filter
+</code></pre>
+<p>For the rest of the machine words, see <a href="smarties.html">omega for smarties</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

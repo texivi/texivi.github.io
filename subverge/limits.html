@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limits - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="limits">Limits</h1>
+<p>A &quot;limit&quot; is a fixed size in Subverge, such as how many values the stack can hold or how long a line can be. When a program goes past a limit, the word fails with an error message and the line is undone like any other failure (<a href="transactions.html">transactions</a>). The messages are listed in <a href="errors.html">errors</a>.</p>
+<h2 id="values">Values</h2>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Limit</th>
+<th>Error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>integers</td>
+<td>64 bits, then <a href="bignums.html">bignums</a> up to 2^65536</td>
+<td><code>that number is too big, the limit is 2^65536</code></td>
+</tr>
+<tr>
+<td><code>^</code> with plain integers</td>
+<td>exponents of 0 or more</td>
+<td><code>negative powers aren&#x27;t supported</code></td>
+</tr>
+<tr>
+<td>ordinal exponent</td>
+<td>finite parts up to 64 when written out</td>
+<td><code>that exponent is too big to write out</code></td>
+</tr>
+<tr>
+<td>ordinal coefficients</td>
+<td>64 bits each</td>
+<td><code>that coefficient doesn&#x27;t fit in 64 bits</code></td>
+</tr>
+<tr>
+<td>ordinal terms</td>
+<td>64, later terms are dropped</td>
+<td></td>
+</tr>
+<tr>
+<td><code>range</code></td>
+<td>100000 items</td>
+<td><code>that range is too big</code></td>
+</tr>
+<tr>
+<td><code>split</code></td>
+<td>256 parts</td>
+<td><code>that splits into too many parts</code></td>
+</tr>
+<tr>
+<td><code>pad</code></td>
+<td>4096 characters, wider requests leave the string unchanged</td>
+<td></td>
+</tr>
+<tr>
+<td><code>alloc</code></td>
+<td>1 byte to 16 MiB</td>
+<td><code>alloc takes 1 byte up to 16M</code></td>
+</tr>
+<tr>
+<td><code>str</code></td>
+<td>511 characters for anything but a bignum</td>
+<td></td>
+</tr>
+<tr>
+<td><code>join</code></td>
+<td>64 KiB of text</td>
+<td><code>that string would be too long</code></td>
+</tr>
+<tr>
+<td><code>replace</code></td>
+<td>1 MiB of text</td>
+<td><code>that string would be too long</code></td>
+</tr>
+<tr>
+<td><code>rand</code></td>
+<td>an upper bound of 1 or more</td>
+<td><code>rand needs a number above 0</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="code">Code</h2>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Limit</th>
+<th>Error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>items in one quote, as typed</td>
+<td>256</td>
+<td><code>that quote is too long</code></td>
+</tr>
+<tr>
+<td>nested brackets</td>
+<td>32 levels</td>
+<td><code>the brackets are nested too deep</code></td>
+</tr>
+<tr>
+<td>names in one <code>{ }</code></td>
+<td>32</td>
+<td><code>too many local names</code></td>
+</tr>
+<tr>
+<td>live locals at once</td>
+<td>256</td>
+<td><code>too many local names</code></td>
+</tr>
+<tr>
+<td>call depth</td>
+<td>400 nested quotes</td>
+<td><code>this nests too deep</code></td>
+</tr>
+<tr>
+<td>data stack</td>
+<td>1024 values</td>
+<td><code>the stack is full</code></td>
+</tr>
+<tr>
+<td>distinct names, ever</td>
+<td>8192</td>
+<td>the machine stops with <code>symbol table full</code></td>
+</tr>
+</tbody>
+</table>
+<p>The limit on items in a quote applies to code as it is parsed. Lists built at run time with <code>range</code>, <code>map</code>, <code>append</code> or <code>cat</code> can be longer.</p>
+<h2 id="tabs-and-the-prompt">Tabs and the prompt</h2>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tabs</td>
+<td>4</td>
+</tr>
+<tr>
+<td>prompt line</td>
+<td>200 characters, less when the stack display is wide</td>
+</tr>
+<tr>
+<td>prompt history</td>
+<td>16 lines per tab</td>
+</tr>
+<tr>
+<td><a href="back.html">back</a> history</td>
+<td>64 lines per tab</td>
+</tr>
+<tr>
+<td>key queue</td>
+<td>63 keys per tab, further keys are dropped</td>
+</tr>
+<tr>
+<td>tab title</td>
+<td>23 characters</td>
+</tr>
+<tr>
+<td>screen</td>
+<td>80 by 24 per tab, plus the shared tab bar</td>
+</tr>
+<tr>
+<td>graphics screen</td>
+<td>640 by 480, 16 colours</td>
+</tr>
+</tbody>
+</table>
+<h2 id="root-and-saving">Root and saving</h2>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>root units</td>
+<td>32</td>
+</tr>
+<tr>
+<td>unit name</td>
+<td>1 to 20 characters of <code>a-z</code>, <code>0-9</code> and <code>-</code></td>
+</tr>
+<tr>
+<td>names listed per unit</td>
+<td>96</td>
+</tr>
+<tr>
+<td><code>&#x27;name edit</code></td>
+<td>16 KiB of text</td>
+</tr>
+<tr>
+<td>a saved slot</td>
+<td>1 MiB, for root and for each tab</td>
+</tr>
+<tr>
+<td>an install target</td>
+<td>10 MiB</td>
+</tr>
+</tbody>
+</table>
+<p>A world or root that grows past it is slot is not saved, without a message (<a href="saving.html">saving</a>).</p>
+<h2 id="the-machine">The machine</h2>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kernel heap</td>
+<td>64 MiB, or less on machines with less RAM</td>
+</tr>
+<tr>
+<td>mapped memory</td>
+<td>the first 4 GiB, identity mapped</td>
+</tr>
+<tr>
+<td>stack per tab</td>
+<td>256 KiB</td>
+</tr>
+<tr>
+<td>timer</td>
+<td>100 Hz</td>
+</tr>
+<tr>
+<td>drives</td>
+<td>4, on the two IDE channels</td>
+</tr>
+<tr>
+<td>PCI devices listed by <code>pci</code></td>
+<td>64</td>
+</tr>
+<tr>
+<td>memory map entries</td>
+<td>32</td>
+</tr>
+<tr>
+<td>JIT code per quote</td>
+<td>64 KiB</td>
+</tr>
+<tr>
+<td>help description</td>
+<td>52 characters</td>
+</tr>
+<tr>
+<td>bitmaps at a time</td>
+<td>16, each up to 2048 by 2048</td>
+</tr>
+</tbody>
+</table>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

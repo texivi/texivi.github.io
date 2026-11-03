@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debugging Overview - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="debugging-overview">Debugging Overview</h1>
+<p>This page lists the tools for finding out what went wrong. Everything runs in ring 0, so the tools are words you type at the prompt. They are listed in the order you usually need them.</p>
+<h2 id="the-line-failed">The line failed</h2>
+<p>A line that fails prints it is error in red under the line and is undone. The error says which word failed and why, and <a href="errors.html">errors</a> lists the messages. The stack is as it was before the line, so the line can be run again after a change.</p>
+<pre><code>1 2 3
+4 5 0 /
+</code></pre>
+<p>If an error message is not enough, <code>&#x27;name see</code> prints the source of the word that failed, and <code>&#x27;name help</code> prints it&#x27;s page (<a href="help.html">help</a>).</p>
+<h2 id="the-line-did-nothing">The line did nothing</h2>
+<p>A line that fails is undone as a whole, including the parts that ran before the failure. If a line seems to do nothing, check for a red error above it. <code>back</code> shows nothing was recorded, since a line that failed has no entry in the history (<a href="back.html">back</a>).</p>
+<h2 id="the-stack-is-not-what-you-expected">The stack is not what you expected</h2>
+<p>The prompt shows the stack in grey before the <code>»</code>. <code>depth</code> counts it, <code>.</code> prints and removes the top value, and <code>&#x27;dup help</code> shows the stack effect of any word. A word written as <code>a b -- c</code> takes two values and leaves one (<a href="help.html">help</a>).</p>
+<p>A value that looks right and is not often has the wrong type. <code>type</code> leaves the name of a value&#x27;s type.</p>
+<h2 id="the-program-loops">The program loops</h2>
+<p>Ctrl-C stops the line and undoes it. A line that does not respond to Ctrl-C is one that is inside a single long built-in word, and the other shells are not affected. Switch to one with F1 to F4 or Alt-1 to Alt-4, and use <code>reboot</code> if the stuck shell has to go (<a href="tabs.html">tabs</a>).</p>
+<h2 id="what-the-machine-is-doing">What the machine is doing</h2>
+<p><code>top</code> shows the CPU model, the idle percentage, the heap, the state of each shell and the interrupts, and updates twice a second. <code>irqmon</code> counts interrupts as they arrive.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>top</code></td>
+<td>the machine, live</td>
+</tr>
+<tr>
+<td><code>irqmon</code></td>
+<td>the interrupts, live</td>
+</tr>
+<tr>
+<td><code>sys</code></td>
+<td>the versions and the memory</td>
+</tr>
+<tr>
+<td><code>cpuinfo</code></td>
+<td>what the CPU reports</td>
+</tr>
+<tr>
+<td><code>memls</code></td>
+<td>the memory map from the firmware</td>
+</tr>
+<tr>
+<td><code>pcils</code></td>
+<td>the PCI devices</td>
+</tr>
+<tr>
+<td><code>disks</code></td>
+<td>the drives</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-compiled-code">The compiled code</h2>
+<p>A quote is compiled on its second run. If a word gives a different answer the second time, compare it with the interpreter: <code>jit-off</code> makes everything run in the interpreter, <code>jit-on</code> turns the compiler back on, and the results must be identical. <code>&#x27;name xray</code> prints the machine code of a word, and <code>[ ... ] bench</code> times a quote both ways (<a href="jit.html">JIT</a>, <a href="dis.html">dis</a>).</p>
+<h2 id="memory">Memory</h2>
+<p><code>hexview</code> is an editor for live memory, and <code>peek</code> and <code>poke</code> read and write a byte. <code>alloc</code> and <code>free</code> take and give back memory, and a program that forgets to free leaks it. The words that allocate are described on the <a href="memory.html">memory</a> page. A write to memory or to a port cannot be undone and is not part of the transaction (<a href="transactions.html">transactions</a>).</p>
+<h2 id="a-fault">A fault</h2>
+<p>A fault in one shell, such as an access to an address that is not mapped, stops that shell&#x27;s line and no other. The shell reports the fault and says that the last line was dropped, and then starts again at its prompt with the world it had before the line (<a href="tabs.html">tabs</a>). A fault that happens while no task is running, in the idle loop, is a panic: the screen turns red, prints the message and the system halts.</p>
+<p>See <a href="troubleshooting.html">troubleshooting</a> for common problems and <a href="limits.html">limits</a> for what the system can hold.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="machine">Machine</h1>
+<p>These words show the memory map and the drives, reboot or stop the machine, and install Subverge without asking questions.</p>
+<h2 id="looking">Looking</h2>
+<pre><code>memmap              [ base length type ] for each region
+kernel              kernel image bytes, then bytes of RAM
+drives              [ n model megabytes home ] for each drive
+sys-c               the system info screen, written in C
+</code></pre>
+<p><code>memmap</code> is the BIOS memory map, as passed in by GRUB or by Subverge&#x27;s own <a href="boot.html">bootloader</a>, which collects it with E820 so the kernel cannot tell the difference. Type 1 is usable RAM. The other types are reserved, ACPI tables, or memory the firmware keeps for itself, and the kernel leaves them alone. <code>memls</code> prints it with names. See <a href="memory.html">memory</a> for what lives where.</p>
+<p><code>drives</code> lists up to four IDE drives, the primary and secondary controller&#x27;s master and slave, with the model string the drive reports, it is size in megabytes, and <code>1</code> for the one Subverge is installed on. <code>disks</code> prints the same list as a table, and <code>home</code> gives the installed drive&#x27;s number on it&#x27;s own.</p>
+<h2 id="rebooting-and-halting">Rebooting and halting</h2>
+<pre><code>reboot              restarts the machine
+halt                stops it
+</code></pre>
+<p><code>reboot</code> pulses the reset line through the keyboard controller. On an installed disk it is safe, because every <a href="world.html">world</a> was <a href="saving.html">saved</a> after its last line. On the live ISO, everything is lost.</p>
+<p><code>halt</code> says that the machine is halted, disables interrupts and halts the CPU. Only a reset recovers from it. <code>try</code> cannot catch it. Close QEMU to get out.</p>
+<h2 id="installing-without-asking">Installing without asking</h2>
+<pre><code>0 install-to
+</code></pre>
+<p>installs Subverge on drive 0 without listing drives or asking for confirmation. It writes the boot sector, stage 2, a fresh copy of the kernel and an empty state header, then saves root and all four tabs into the new slots, and says that it is done. <code>install</code> is the omega program in root that asks for a drive, waits for <code>yes</code> and then calls <code>install-to</code>.</p>
+<p>This is the most destructive word in the system. With a disk image in QEMU it is harmless, but on real hardware it erases whichever drive number you give it. See <a href="disk-layout.html">disk layout</a> for exactly which sectors it writes.</p>
+<p>It refuses drives smaller than 8 MB, and it refuses to run if the kernel&#x27;s own data section could not be copied at boot, because it installs a clean copy of the kernel as it was before anything ran, not the running one with all your changes poked into it.</p>
+<h2 id="saving-by-hand">Saving by hand</h2>
+<pre><code>save
+</code></pre>
+<p>writes root and all four tabs to the installed disk right now. Everything is already saved after each line, so this is rarely needed. It fails on the live ISO, because nothing is installed yet.</p>
+<h2 id="the-rest">The rest</h2>
+<p>See <a href="memory.html">memory</a> for raw memory, <a href="ports.html">ports</a> for ports and PCI, <a href="screen.html">screen</a> for the screen, and <a href="internals.html">internals</a> for what happens underneath.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="games">Games</h1>
+<p>The games and animations draw directly on the text <a href="screen.html">screen</a>. Each one is a page or two of omega in <a href="root.html">root</a>, and <code>&#x27;name open</code> shows how it works.</p>
+<h2 id="snake">snake</h2>
+<pre><code>snake
+</code></pre>
+<p>The arrow keys steer, and the snake cannot reverse into itself. Each piece of food adds three segments and a point. Running into the wall or into yourself ends the game. The snake moves every 8 ticks, about twelve steps a second.</p>
+<h2 id="tiles">tiles</h2>
+<pre><code>tiles
+</code></pre>
+<p><code>tiles</code> is a sliding tile game on a 4 by 4 board. The arrow keys slide every tile as far as it goes, and two equal tiles that meet merge into their sum. Each slide that moves anything adds a new 2 or, one time in ten, a 4. Merges add their value to the score. The game ends when no slide changes the board. Tile colours follow the <a href="themes.html">theme</a>.</p>
+<p>The board is a list of 16 numbers, and each slide is computed by reading the board along one of four sets of index lines, sliding each line left with <code>slide-row</code>, and writing it back with <code>set-at</code>. The same code handles all four directions:</p>
+<pre><code>[ 2 2 4 0 ] slide-row . .           4, then [ 4 4 0 0 ]
+[ 2 2 2 2 ] slide-row . .           8, then [ 4 4 0 0 ]
+</code></pre>
+<h2 id="pong">pong</h2>
+<pre><code>pong
+</code></pre>
+<p>Left and right move the paddle along the bottom. Each return scores a point, and a miss ends the game.</p>
+<h2 id="life">life</h2>
+<pre><code>life
+</code></pre>
+<p>Conway&#x27;s Game of Life on an 80 by 22 board that wraps at the edges, seeded at random with about one cell in four alive. It keeps two boards in raw memory from <code>alloc</code> and swaps them each generation, and frees both when you quit, so it is also a working example of the <a href="memory.html">memory</a> words.</p>
+<h2 id="animations">Animations</h2>
+<p>These run until a key is pressed.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>What it draws</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rain</code></td>
+<td>falling green characters</td>
+</tr>
+<tr>
+<td><code>stars</code></td>
+<td>a starfield flying towards you</td>
+</tr>
+<tr>
+<td><code>bounce</code></td>
+<td>balls bouncing off the edges</td>
+</tr>
+<tr>
+<td><code>sieve</code></td>
+<td>the sieve of Eratosthenes, crossing out multiples up to 1840</td>
+</tr>
+<tr>
+<td><code>sorting</code></td>
+<td>bubble sort on random bars, swap by swap</td>
+</tr>
+<tr>
+<td><code>fortune</code></td>
+<td>one short fact, printed and done</td>
+</tr>
+</tbody>
+</table>
+<p>Running a few of them in different <a href="tabs.html">tabs</a> and then <code>top</code> shows the scheduler sharing the CPU between them.</p>
+<h2 id="writing-your-own">Writing your own</h2>
+<p>The bundled games share a shape:</p>
+<pre><code>[ &quot;name&quot; title wipe nocursor
+  ... set up locals ...
+  [ going ] [
+    ... draw with put and text ...
+    key? quit-key? [ 0 -&gt;going ] when
+    5 sleep
+  ] while
+  wipe &quot;omega&quot; title
+] :name
+</code></pre>
+<p><code>title</code> names the tab, <code>wipe</code> and <code>nocursor</code> clear the screen and hide the cursor, and the loop draws a frame, reads at most one key without waiting and sleeps a few ticks. <code>quit-key?</code> is true for <code>q</code>, Escape and Ctrl-C. Games that only change on a key press, such as <code>tiles</code>, use <code>key</code> instead of <code>key?</code> and skip the sleep.</p>
+<p>Drawing only what changed is much faster than redrawing the whole screen: <code>snake</code> draws the new head and erases the old tail, and never touches the rest. Use the colour numbers rather than fixed colours so the game follows the theme.</p>
+<p>Put the finished game in a <a href="units.html">unit</a> and add it to <a href="apps.html">apps</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

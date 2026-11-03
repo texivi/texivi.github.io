@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>back - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="back">back</h1>
+<p><code>back</code> undoes the last line that changed anything in your tab. What it restores is the <a href="world.html">world</a> of the tab, which is its stack and its definitions. Each tab remembers its 64 most recent changes, so you can go back up to 64 lines.</p>
+<h2 id="using-it">Using it</h2>
+<p>Type <code>back</code> on a line of its own:</p>
+<pre><code>1 2 » 3
+1 2 3 » [ dup dup * * ] :cube
+1 2 3 » back
+  rewound 1
+1 2 3 »
+</code></pre>
+<p><code>cube</code> is gone, and the stack is what it was before the line that defined it. Typing <code>back</code> again would also remove the <code>3</code>.</p>
+<p><code>back</code> is a word like any other, so you can put several on one line:</p>
+<pre><code>back back back
+</code></pre>
+<p>rewinds three lines and says how many lines it went back. If fewer lines are recorded than you asked for, it rewinds as many as it can. If nothing is recorded, it tells you there is nothing to go back to.</p>
+<h2 id="which-lines-count">Which lines count</h2>
+<p>Only lines that changed the stack or the definitions are recorded. A line that only printed something, such as <code>words</code>, <code>help</code> or <code>&quot;hi&quot; say</code>, leaves the world exactly as it was, so it is not recorded and <code>back</code> skips it. A failed line never changed the world in the first place (<a href="transactions.html">transactions</a>), so it is not recorded either.</p>
+<p>This means <code>back</code> always undoes something you can see. If you run <code>top</code> five times and then define a word, a single <code>back</code> removes the definition.</p>
+<h2 id="the-rest-of-the-line-is-discarded">The rest of the line is discarded</h2>
+<p>A line that calls <code>back</code> commits nothing else. Whatever else it did to the stack or the definitions is thrown away, and the world is replaced by the older one:</p>
+<pre><code>[ 1 ] :x back
+</code></pre>
+<p>does not define <code>x</code>, and it rewinds the line before it. Put <code>back</code> on a line of its own, unless that is what you want.</p>
+<p>Code that calls <code>back</code> inside a definition works the same way, so <code>[ back ] :undo</code> followed by <code>undo</code> rewinds one line.</p>
+<h2 id="redo">redo</h2>
+<p><code>redo</code> takes a <code>back</code> back:</p>
+<pre><code>1 2 » 3
+1 2 3 » back
+  rewound 1
+1 2 » redo
+  redone 1
+1 2 3 »
+</code></pre>
+<p>Each <code>back</code> puts the world it leaves on a redo list, and <code>redo</code> takes worlds off that list again, newest first. <code>redo redo</code> redoes two. Like <code>back</code>, it throws away everything else on its line.</p>
+<p>Any line that changes the world in a new way clears the redo list, because the worlds on it no longer follow from the current one. If there is nothing to redo, <code>redo</code> tells you so. A line with both <code>back</code> and <code>redo</code> only goes back.</p>
+<p>The redo list holds up to 64 worlds and is not saved to disk, so it is empty after a reboot.</p>
+<h2 id="what-back-restores">What back restores</h2>
+<p><code>back</code> restores exactly what a transaction protects: the stack and the definitions of the tab. It cannot reach these:</p>
+<ul>
+<li>Root. Root edits are separate and have their own rule for failures (<a href="root.html">root</a>). To undo a root edit, open the unit and change it back.</li>
+<li>Other tabs. Each tab has its own history, and <code>back</code> in one tab never affects another.</li>
+<li>The machine. Memory written with <code>poke</code>, ports written with <code>out</code>, <code>alloc</code>, the screen, the title of the tab and the clock change the moment the word runs. <code>back</code> does not put them back.</li>
+<li>Printed text stays on the screen.</li>
+</ul>
+<h2 id="rewinding-and-saving">Rewinding and saving</h2>
+<p>On an installed disk, a rewind is saved like any other change, so the world on disk after <code>back</code> is the older one (<a href="saving.html">saving</a>). The history itself is not saved. After a reboot each tab starts with an empty history, so the first <code>back</code> has nothing to go back to.</p>
+<h2 id="cost">Cost</h2>
+<p>Rewinding is instant, however much is defined. A world is only a pointer to a stack and a pointer to the start of the definitions, and old worlds share almost all of their entries with new ones, so keeping 64 of them takes little memory. See <a href="worlds.html">how worlds work</a>.</p>
+<h2 id="back-and-the-up-arrow">back and the Up arrow</h2>
+<p>The Up arrow at the <a href="prompt.html">prompt</a> brings back the text of an earlier line. <code>back</code> undoes what a line did. To fix a wrong definition, <code>back</code> it, press Up twice to get the line back, edit it and press Enter.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

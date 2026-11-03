@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scrawl - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="scrawl">scrawl</h1>
+<p>scrawl is the text editor. It is used for anything longer than one line: definitions, <a href="units.html">root units</a> and new programs. It has no modes, so typing always inserts text, and the commands are Ctrl and Alt keys, the same ones as at the prompt (<a href="keys.html">keys</a>).</p>
+<h2 id="opening-it">Opening it</h2>
+<p>You never start scrawl directly. It is opened by one of three words, and the word decides what happens to the text when you quit:</p>
+<pre><code>&#x27;sq edit            a definition in this tab
+&#x27;top open           the root unit that defines top
+&quot;mine&quot; unit         a new, empty root unit
+</code></pre>
+<p><code>edit</code> works on the <a href="world.html">world</a> of your tab, and <code>open</code> and <code>unit</code> work on <a href="root.html">root</a>.</p>
+<p>While scrawl is open, the title of the tab is <code>edit</code> followed by the name, and the tab is busy. The other tabs keep running, and each tab can have its own scrawl open.</p>
+<h2 id="the-screen">The screen</h2>
+<p>The top row shows <code>scrawl</code>, the name that is being edited, <code>[+]</code> when there are unsaved changes, and the line and column of the cursor on the right. Each line of text has its number in the left margin, and rows after the end of the text show <code>~</code>. The bottom row lists the main keys, and it is replaced by short messages, for example after a save, a failed search or setting the mark.</p>
+<p>Lines that are longer than the screen scroll sideways as the cursor moves along them.</p>
+<h2 id="keys">Keys</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C-f, C-b, Left, Right</td>
+<td>move by character, wrapping at line ends</td>
+</tr>
+<tr>
+<td>C-n, C-p, Down, Up</td>
+<td>move by line</td>
+</tr>
+<tr>
+<td>C-a, C-e, Home, End</td>
+<td>start or end of the line</td>
+</tr>
+<tr>
+<td>M-f, M-b</td>
+<td>forward or back one word</td>
+</tr>
+<tr>
+<td>M-&lt;, M-&gt;</td>
+<td>start or end of the text</td>
+</tr>
+<tr>
+<td>C-v, M-v, Page Down, Page Up</td>
+<td>one screen down or up</td>
+</tr>
+<tr>
+<td>C-l</td>
+<td>puts the cursor line in the middle of the screen</td>
+</tr>
+<tr>
+<td>RET</td>
+<td>splits the line, keeping the current line&#x27;s indentation</td>
+</tr>
+<tr>
+<td>C-o</td>
+<td>opens a blank line after the cursor</td>
+</tr>
+<tr>
+<td>DEL</td>
+<td>deletes before the cursor, joining lines at the start of one</td>
+</tr>
+<tr>
+<td>C-d, Delete</td>
+<td>deletes under the cursor, joining lines at the end of one</td>
+</tr>
+<tr>
+<td>TAB</td>
+<td>inserts spaces up to the next multiple of 4</td>
+</tr>
+<tr>
+<td>C-t</td>
+<td>swaps the two characters at the cursor</td>
+</tr>
+<tr>
+<td>C-k</td>
+<td>kills to the end of the line, or the line break when the line is empty</td>
+</tr>
+<tr>
+<td>M-d, M-DEL</td>
+<td>kills the next word or the word before</td>
+</tr>
+<tr>
+<td>C-SPC</td>
+<td>sets the mark</td>
+</tr>
+<tr>
+<td>C-w, M-w</td>
+<td>kills or copies from the mark to the cursor</td>
+</tr>
+<tr>
+<td>C-y</td>
+<td>yanks the last kill</td>
+</tr>
+<tr>
+<td>C-x C-x</td>
+<td>swaps the cursor and the mark</td>
+</tr>
+<tr>
+<td>C-s, C-r</td>
+<td>searches forward or backward</td>
+</tr>
+<tr>
+<td>M-g</td>
+<td>goes to a line number</td>
+</tr>
+<tr>
+<td>C-g</td>
+<td>clears the mark</td>
+</tr>
+<tr>
+<td>C-x C-s</td>
+<td>saves</td>
+</tr>
+<tr>
+<td>C-x C-c, C-q</td>
+<td>quits</td>
+</tr>
+</tbody>
+</table>
+<p>You can type only printable ASCII, as at the <a href="prompt.html">prompt</a>. Use <code>\w</code> and <code>\A</code> in strings for the omega and aleph symbols.</p>
+<h2 id="killing-and-yanking">Killing and yanking</h2>
+<p>Text that you kill goes into the kill buffer of the tab, replacing what was there, and C-y puts it back at the cursor. Kills that follow each other with nothing in between are added to the same piece, so C-k twice at the start of a line takes the line and its line break. A kill can cover several lines, so you can move a block by marking it, killing it with C-w and yanking it where it belongs.</p>
+<p>C-SPC sets the mark where the cursor is. The &quot;region&quot; is the text between the mark and the cursor. C-w kills the region, and M-w copies it without removing anything. Both clear the mark afterwards. C-x C-x puts the cursor at the mark and the mark where the cursor was, which shows you where the region starts.</p>
+<p>The kill buffer belongs to the tab and stays between editing sessions, so text that you killed in one definition can be yanked into another.</p>
+<h2 id="lines">Lines</h2>
+<p>M-g asks for a line number on the bottom row and moves to the start of that line. A number past the end goes to the last line, and ESC cancels. These are the numbers shown in the margin, so you can go straight to a line that an error message names.</p>
+<h2 id="searching">Searching</h2>
+<p>C-s asks for text on the bottom row. RET searches forward from just after the cursor, goes around past the end if needed, and moves the cursor to the first match. ESC and C-g cancel. An empty answer repeats the last search, so C-s RET steps through every match. C-r does the same toward the start of the text. The search is case-sensitive.</p>
+<h2 id="saving-and-quitting">Saving and quitting</h2>
+<p>C-x C-s records the current text as the saved version. Nothing outside the editor changes yet. C-x C-c, or C-q, quits, and what happens next depends on how scrawl was opened. It uses the last saved version:</p>
+<ul>
+<li><code>edit</code> parses the text and redefines the word in your tab.</li>
+<li><code>open</code> and <code>unit</code> rebuild root from that unit onward. If the rebuild fails, root keeps working as before and your text is kept as a draft (<a href="root-build.html">how root builds</a>).</li>
+</ul>
+<p>If the text has unsaved changes, the first quit warns you, and a second quit leaves without them. If you quit without ever saving, nothing changes.</p>
+<h2 id="edit-in-detail">edit in detail</h2>
+<p><code>&#x27;name edit</code> opens the body of a definition, without its outer brackets:</p>
+<pre><code>[ { a b } a a * b b * + ] :hyp
+&#x27;hyp edit
+</code></pre>
+<p>shows <code>{ a b } a a * b b * +</code>. When you quit, the text is parsed back into a quote and defined as <code>hyp</code> in your tab. A few things follow from this:</p>
+<ul>
+<li>A new name opens an empty editor, and quitting defines the word. Use it for anything longer than one line.</li>
+<li>A root word opens its root definition, and quitting defines a private copy in your tab that hides the root one. Use <code>open</code> to change root itself.</li>
+<li>A value that is not a quote, such as a string, opens as plain text and is saved back as a string.</li>
+<li>Text that does not parse, for example text with a bracket that is never closed, is kept as a string, and scrawl reports the reason. The word then pushes that string when it runs. Open it again with <code>edit</code> to fix it.</li>
+</ul>
+<p>Because <code>edit</code> redefines the word, the change is an ordinary change to the world: <code>back</code> undoes it, and on an installed disk it is <a href="saving.html">saved</a>.</p>
+<p>Comments do not survive <code>edit</code>. The text is parsed into a quote, and printing the quote back for the next <code>edit</code> gives the code without them. Code whose comments matter belongs in a root unit, where the source is kept as you wrote it.</p>
+<h2 id="size">Size</h2>
+<p><code>edit</code> shows at most 16 KiB of the text of a definition. Root units have no limit of their own, apart from the 1 MiB slot in which all of root is saved.</p>
+<h2 id="on-the-screen">On the screen</h2>
+<p><code>scrawl</code> uses the whole window of its tab, which is 80 by 24 characters when the tab has the screen to itself, and smaller in a <a href="tabs.html">split window</a>. The mouse is not used in the editor. The tab keys F1 to F4 and Alt-1 to Alt-4 still switch tabs, so another tab can show a help page while you write a unit.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

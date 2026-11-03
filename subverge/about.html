@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Subverge - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="about-subverge">About Subverge</h1>
+<p>Subverge is an x86-64 operating system written from scratch. It is a hobby project developed at github.com/texivi/Subverge, licensed under the GNU GPL v3, and it runs in QEMU. It has not been tried on any other machine.</p>
+<p>The kernel is <strong>ordinal</strong>, the shell is <strong>omega</strong> and the editor is <strong>scrawl</strong>. The name <em>subverge</em> is a coinage from <em>subvert</em> and <em>diverge</em>. The <a href="history.html">history</a> page has the origin of the names, the inspiration and the list of releases.</p>
+<h2 id="what-the-system-consists-of">What the system consists of</h2>
+<p>The kernel is written in C and x86-64 assembly. ISOs boot through GRUB. Installed disks boot through a master boot record and a second stage that come with Subverge (<a href="boot.html">boot</a>). Everything above the kernel is omega source in <a href="root.html">root</a>: the utilities, the games, the installer and the lessons of <code>learn</code>. The source is kept in the kernel image and is rebuilt when it is edited.</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ordinal</td>
+<td>Memory, interrupts, the scheduler, drivers and the JIT.</td>
+</tr>
+<tr>
+<td>help</td>
+<td>The pager for these pages and the PS/2 mouse driver.</td>
+</tr>
+<tr>
+<td>omega</td>
+<td>The language: parser, interpreter, garbage collector, bignums and ordinals.</td>
+</tr>
+<tr>
+<td>scrawl</td>
+<td>The text editor behind <code>&#x27;name edit</code> and <code>&#x27;name open</code>.</td>
+</tr>
+<tr>
+<td>root</td>
+<td>The programs written in omega.</td>
+</tr>
+<tr>
+<td>docs</td>
+<td>These pages, linked into the kernel (<a href="docfs.html">where the pages live</a>).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-help">The help</h2>
+<p>These pages are stored in the kernel image, so they match the running build and work on the live ISO. <code>docs</code> opens the index and <code>&quot;name&quot; doc</code> opens a page. The pager is part of the kernel and reads a small dialect of markdown. A table built together with the kernel maps page names to text, and no disk is read.</p>
+<h2 id="credits">Credits</h2>
+<p>See <a href="credits.html">credits</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

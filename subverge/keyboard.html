@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The keyboard - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="the-keyboard">The keyboard</h1>
+<p>This page explains how Subverge reads the keyboard. It reads a PS/2 keyboard directly, through the keyboard controller at ports <code>0x60</code> and <code>0x64</code>.</p>
+<h2 id="from-scancode-to-key">From scancode to key</h2>
+<p>The controller delivers scancode set 1, which is what PC firmware and QEMU provide by default. Each press and release raises IRQ 1, and the handler reads one byte from port <code>0x60</code>.</p>
+<p>The handler tracks Shift, Ctrl, Alt and Caps Lock itself. Releases are ignored except for those modifiers. A press is translated through a US layout table, with a second table for Shift. Caps Lock swaps the case of letters only. Ctrl with a letter produces the control code, so Ctrl-A is 1 and Ctrl-Z is 26.</p>
+<p>The extended prefix byte <code>0xE0</code> is remembered for the next scancode. It is used to tell keypad Enter from the main Enter, and both produce a newline.</p>
+<p>Keys outside the US table, such as a second backslash key on international keyboards, produce nothing.</p>
+<h2 id="keys-that-never-reach-a-tab">Keys that never reach a tab</h2>
+<p>Some keys are handled inside the interrupt handler and never queued:</p>
+<ul>
+<li><strong>F1 to F4</strong> and <strong>Alt-1 to Alt-4</strong> switch the visible <a href="tabs.html">tab</a>. The switch happens immediately, even if every tab is busy.</li>
+<li><strong>Ctrl-C</strong> sets the front shell&#x27;s break flag <em>and</em> is queued as code 3. The flag is what stops running code: the interpreter checks it before every step and fails the line. The queued code is what the <a href="prompt.html">prompt</a> and programs like <code>snake</code> see.</li>
+</ul>
+<h2 id="the-key-queues">The key queues</h2>
+<p>Each tab has it is own queue of 64 entries. Keys always go to the tab in front when they are pressed, so typing into one never affects another.</p>
+<p>A queue holds 63 keys before it is full, and keys pressed while it is full are dropped. A program that does not read keys for a while, such as a long computation, can therefore lose typing beyond that point.</p>
+<p>When a line fails, the keys queued during it are thrown away, so keys pressed while a broken loop was running do not spill into the next prompt.</p>
+<h2 id="key-codes">Key codes</h2>
+<p><code>key</code> waits for a key and pushes it&#x27;s code, <code>key?</code> pushes the next code or <code>-1</code> if the queue is empty, and <code>n waitkey</code> waits at most <code>n</code> ticks and pushes <code>-1</code> on timeout.</p>
+<p>Printable keys give their ASCII code. At the prompt, Tab completes names (<a href="prompt.html">prompt</a>); everywhere else it is code 9. The others:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enter</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Backspace</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>9</td>
+</tr>
+<tr>
+<td>Escape</td>
+<td>27</td>
+</tr>
+<tr>
+<td>Ctrl-A to Ctrl-Z</td>
+<td>1 to 26</td>
+</tr>
+<tr>
+<td>Up</td>
+<td>256</td>
+</tr>
+<tr>
+<td>Down</td>
+<td>257</td>
+</tr>
+<tr>
+<td>Left</td>
+<td>258</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>259</td>
+</tr>
+<tr>
+<td>Home</td>
+<td>260</td>
+</tr>
+<tr>
+<td>End</td>
+<td>261</td>
+</tr>
+<tr>
+<td>Page Up</td>
+<td>262</td>
+</tr>
+<tr>
+<td>Page Down</td>
+<td>263</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>264</td>
+</tr>
+</tbody>
+</table>
+<p>A loop that reads keys:</p>
+<pre><code>[ key dup 113 = not ] [ . ] while drop
+</code></pre>
+<p>prints codes until <code>q</code> is pressed. Locals bound in the condition of a <code>while</code> are gone by the time the body runs, so the code stays on the stack instead. The <code>quit-key?</code> helper in root tests for <code>q</code>, Escape and Ctrl-C at once, which is how most of the bundled programs decide to exit.</p>
+<h2 id="waiting-without-spinning">Waiting without spinning</h2>
+<p>A tab that calls <code>key</code> on an empty queue marks itself as waiting for a key and yields. The <a href="scheduler.html">scheduler</a> skips it until a key arrives in its queue, so a tab sitting at the prompt uses no CPU. <code>waitkey</code> marks the tab as waiting for either a key or a tick, whichever comes first, and the animated programs use it to run a frame every few ticks while still reacting to keys at once.</p>
+<h2 id="usb-keyboards">USB keyboards</h2>
+<p>On real machines a USB keyboard works only if the firmware emulates a PS/2 controller for it, which is often called legacy USB support. In QEMU the default keyboard is PS/2.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

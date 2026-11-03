@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Root - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="root">Root</h1>
+<p>Root holds the omega programs that come with Subverge, and you can edit it while the system runs. Words that every <a href="tabs.html">tab</a> should have belong here too. An edit only goes live if it builds, so a mistake cannot break root.</p>
+<h2 id="units">Units</h2>
+<p>Root is split into units, one for each file in <code>root/</code>, and each starts with <code>#&gt;&gt; name</code>. They run in order at boot, so a unit can use anything defined before it. <code>root</code> lists them:</p>
+<table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>What&#x27;s in it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core</code></td>
+<td><code>sq inc dec fmt bar header watch timeit sum fold uptime</code> and other helpers</td>
+</tr>
+<tr>
+<td><code>apps</code></td>
+<td><code>apps</code> and its list</td>
+</tr>
+<tr>
+<td><code>sys</code></td>
+<td>the <a href="logos.html">logos</a>, <code>sys</code>, <code>welcome</code>, <code>startup</code></td>
+</tr>
+<tr>
+<td><code>top</code></td>
+<td><code>top</code></td>
+</tr>
+<tr>
+<td><code>inspect</code></td>
+<td><code>pcils memls cpuinfo irqmon hexview</code></td>
+</tr>
+<tr>
+<td><code>infinity</code></td>
+<td><code>count ord-demo powerset pairing hotel rationals pair unpair fusc rational collatz thue prime? ulam diagonal supertask</code></td>
+</tr>
+<tr>
+<td><code>fun</code></td>
+<td><code>fortune snake life rain tiles</code></td>
+</tr>
+<tr>
+<td><code>mandel</code></td>
+<td><code>mandel mandel-at</code></td>
+</tr>
+<tr>
+<td><code>toys</code></td>
+<td><code>sieve bounce sorting stars</code></td>
+</tr>
+<tr>
+<td><code>tools</code></td>
+<td><code>clock stopwatch timer todo bases convert password ascii colors pong date month cal</code></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code>disks install</code></td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td><code>jitdis xray bench</code></td>
+</tr>
+<tr>
+<td><code>learn</code></td>
+<td><code>learn</code> and its lessons</td>
+</tr>
+</tbody>
+</table>
+<h2 id="editing-a-unit">Editing a unit</h2>
+<pre><code>&#x27;top open
+</code></pre>
+<p>opens the unit that defines <code>top</code> in <a href="scrawl.html">scrawl</a>. Nothing changes until you close the editor.</p>
+<p>When you close the editor, the unit you edited and every unit after it are run again on top of the earlier ones. If they all build, the new root replaces the old one at once, every tab sees it, and it is <a href="saving.html">saved</a>. If anything fails, root stays as it was:</p>
+<pre><code>root unchanged, top: foo isn&#x27;t defined (your edit is kept: open it again)
+</code></pre>
+<p>Your edit is kept as a draft, which <code>root</code> marks with <code>(draft)</code>, and the next <code>&#x27;top open</code> opens it again so you can fix it. <code>back</code> does not affect root.</p>
+<h2 id="shadowing">Shadowing</h2>
+<p>A unit can redefine a built-in word. When that happens, the rebuild prints a warning with the names, in orange.</p>
+<h2 id="saved-root-fails-to-build">Saved root fails to build</h2>
+<p>This usually happens after an upgrade of the system. Subverge then reports this and boots with the root that is inside the kernel. The saved root is kept until your next root edit overwrites it.</p>
+<p>To add your own, see <a href="units.html">units</a>, and to list a program in <code>apps</code>, see <a href="apps.html">apps</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

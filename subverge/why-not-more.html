@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Not More? - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="why-not-more">Why Not More?</h1>
+<p>This page lists what Subverge leaves out and why. Most things are missing because each one is a driver or a whole layer that nobody has written yet. Each is on the <a href="roadmap.html">roadmap</a>, or has a reason why it is left out.</p>
+<h2 id="real-hardware">Real hardware</h2>
+<p>Subverge is developed and tested in QEMU only. The drivers are written for the hardware QEMU provides, which is a PC from the late 1990s with a 64-bit CPU: a PIT and two PICs for time and interrupts, a PS/2 keyboard and mouse, IDE disks through the legacy ports and a VGA card, with Bochs graphics for the <code>gfx</code> mode. Many real machines provide the same things through compatibility modes in their firmware. A machine that does not, such as one that boots only through UEFI, cannot start the system.</p>
+<h2 id="uefi">UEFI</h2>
+<p>The ISO boots through GRUB in BIOS mode and an installed disk boots through Subverge&#x27;s own boot sector and second stage, which use BIOS disk services (<a href="boot.html">boot</a>). UEFI is on the roadmap. It needs a loader that is a program in a different format and a different way of finding the memory map, and it takes away the VGA text mode that the text screen needs.</p>
+<h2 id="usb">USB</h2>
+<p>A USB keyboard or mouse works only where the firmware emulates a PS/2 controller for it. A USB driver is a stack of layers, one for each of the controllers that PCs have had, and each one is large. It is on the roadmap.</p>
+<h2 id="disks">Disks</h2>
+<p>Subverge reads and writes IDE disks through the legacy ports and uses programmed I/O, so it is slow and works everywhere QEMU&#x27;s IDE controller does. Disks behind an AHCI controller, an NVMe controller or a virtio device are not seen. AHCI is on the roadmap (<a href="drives.html">drives</a>).</p>
+<h2 id="networking">Networking</h2>
+<p>There is no network driver. A network stack is a driver and a set of protocols, and the protocols are most of the work. It is on the roadmap.</p>
+<h2 id="sound">Sound</h2>
+<p>The only sound is the PC speaker, which plays one tone at a time through <code>beep</code>. A sound card driver would need the PCI bus, and the format of the sound is not decided. It is on the roadmap.</p>
+<h2 id="floating-point">Floating point</h2>
+<p>omega&#x27;s numbers are exact integers, bignums, ordinals and cardinals. The kernel is compiled without floating point so that it does not have to save the registers of the unit when it switches tasks. A floating point number type is on the roadmap.</p>
+<h2 id="more-than-one-cpu">More than one CPU</h2>
+<p>The system uses one core. The scheduler, the heap and the interrupt handlers assume nothing runs in parallel with them. Several cores are on the roadmap.</p>
+<h2 id="files">Files</h2>
+<p>The disk holds fixed slots, and the values with names are in <a href="phi.html">phi</a>, which is a tree of sets in memory with it&#x27;s own slot. Programs and definitions are omega words, and an installed disk saves them as omega source. phi has no permissions and no links between values (<a href="disk-layout.html">disk layout</a>).</p>
+<h2 id="protection">Protection</h2>
+<p>All code runs in ring 0 with access to everything, and a bad write can stop the machine. Nothing on the roadmap changes this (<a href="design.html">design</a>).</p>
+<h2 id="fonts">Fonts</h2>
+<p>There is one font, the 8 by 16 font of the VGA card.</p>
+<p>See <a href="decisions.html">decisions</a> for what the system chose to do and <a href="expectations.html">expectations</a> for what to expect of it.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

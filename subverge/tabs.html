@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabs - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="tabs">Tabs</h1>
+<p>Subverge has four tabs. Each is a complete omega session with its own stack, definitions and screen, and all four run at the same time. Tabs are the only form of concurrency, and there are always exactly four.</p>
+<h2 id="switching">Switching</h2>
+<p>F1 to F4 and Alt-1 to Alt-4 show tab 1 to 4. A click on a tab title in the top bar does the same if a PS/2 mouse is present (<a href="ps2.html">ps2</a>). The system handles these keys itself, so they work even when every tab is busy, and they are the way out of a program that does not answer Ctrl-C.</p>
+<p>Switching shows the tab you chose in the window that has the keyboard, which is the whole screen until you split it. The tab looks exactly as you left it, including anything it printed while it was hidden.</p>
+<h2 id="windows">Windows</h2>
+<p>The screen can show up to four tabs at once, each in its own window. Every window has a title line at the bottom with the number and title of its tab, and the window that has the keyboard is highlighted.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Super-Enter</td>
+<td>opens a window</td>
+</tr>
+<tr>
+<td>Super-W</td>
+<td>closes the window that has the keyboard</td>
+</tr>
+<tr>
+<td>Super-arrows</td>
+<td>move to the window in that direction</td>
+</tr>
+<tr>
+<td>C-x 3</td>
+<td>opens a window beside this one</td>
+</tr>
+<tr>
+<td>C-x 2</td>
+<td>opens a window below this one</td>
+</tr>
+<tr>
+<td>C-x 1</td>
+<td>keeps only this window</td>
+</tr>
+<tr>
+<td>C-x 0</td>
+<td>closes this window</td>
+</tr>
+<tr>
+<td>C-x o</td>
+<td>moves to the next window</td>
+</tr>
+</tbody>
+</table>
+<p>A click in a window moves you to it. F1 to F4 and Alt-1 to Alt-4 show that tab in the window that has the keyboard, or move to the window that already shows it.</p>
+<p>Super-Enter splits the window that has the keyboard in half and gives the new window to the lowest-numbered tab that is not on the screen, preferring the one that was in front last. If the window is wider than it is tall (counting a character as twice as tall as it is wide) the split goes side by side, and otherwise it goes one above the other. The new window gets the keyboard.</p>
+<p>Closing a window hides its tab and gives the space to the next window. The tab keeps running and keeps its screen. With four windows open there is no tab left to show, so Super-Enter does nothing.</p>
+<p>A tab is as big as its window. <code>size</code> gives the width and height in characters, the prompt wraps at the width of the window, and the page viewer, the editor and <code>dired</code> lay themselves out again when the size changes. Output that is wider than the window is cut off at the edge and comes back when the window grows. Programs that draw at fixed places, such as the games, expect 80 by 24 and show only the part that fits, so give them the whole screen with C-x 1.</p>
+<p>The Super key is the Windows key. If your desktop uses it for its own shortcuts, QEMU never sees it unless QEMU has grabbed the keyboard. The C-x keys work without it.</p>
+<h2 id="what-each-tab-has">What each tab has</h2>
+<p>Each tab has its own:</p>
+<ul>
+<li><a href="world.html">world</a>: its stack and its definitions;</li>
+<li><a href="back.html">back</a> history of 64 worlds;</li>
+<li><a href="prompt.html">prompt</a> history of 16 lines;</li>
+<li>key queue. Keys go to the tab in front only;</li>
+<li>screen of up to 80 by 24 characters, with its own cursor and colour;</li>
+<li>title, shown in the tab bar;</li>
+<li>editor state, so <a href="scrawl.html">scrawl</a> can be open in two tabs at once;</li>
+<li>stack for the kernel, 256 KiB, used by the interpreter and anything it calls.</li>
+</ul>
+<p>The tabs share <a href="root.html">root</a>, the memory of the system, the hardware and the disk. A root edit made in one tab shows up in all four as soon as it builds. A definition made at the prompt of one tab is visible only in that tab, and it replaces a root word of the same name there (<a href="names.html">names</a>).</p>
+<h2 id="the-tab-bar">The tab bar</h2>
+<p>The top row is the tab bar. It shows the number and title of each tab, highlights the visible one, and shows the time on the right. It is redrawn once a second and on every switch. A <code>*</code> after the title of a tab means the tab has written to its screen since you last looked at it. If a long job runs in tab 2 while you work in tab 1, a <code>*</code> on tab 2 means it finished, failed or printed progress.</p>
+<h2 id="working-with-tabs-from-omega">Working with tabs from omega</h2>
+<pre><code>mytab .              this tab&#x27;s number, 1 to 4
+&quot;build&quot; title        renames this tab in the tab bar
+2 tab .              [ &quot;omega&quot; &quot;waiting for keys&quot; 0 ]
+</code></pre>
+<p><code>tab</code> gives a list with the title of the tab, its state and whether it is visible. The state is <code>running</code> for the tab that asks, or <code>waiting for keys</code>, <code>sleeping</code> or <code>ready</code>.</p>
+<p>These words number the tabs from 1, to match the keys that select them. Everything else in omega counts from 0.</p>
+<p>Titles are not saved. Every tab starts as <code>omega</code> after a reboot. Programs such as <code>top</code> set their own title while they run and put <code>omega</code> back when they end.</p>
+<h2 id="running-things-in-parallel">Running things in parallel</h2>
+<p>You can start a long job in one tab and keep working in another. Press F2 and type:</p>
+<pre><code>0 100000000 [ 1 + ] times .
+</code></pre>
+<p>Then press F1 and run <code>top</code>. While tab 2 is computing, <code>top</code> shows it as <code>ready</code>, and the idle percentage drops. When the result is printed, tab 2 gets a <code>*</code> in its title.</p>
+<p>The tabs share one processor. The <a href="scheduler.html">scheduler</a> switches between the tabs that are ready 100 times a second, so two busy tabs get about half each. A tab that waits for a key, or sleeps with <code>sleep</code> or <code>waitkey</code>, uses no processor time at all.</p>
+<p>A tab keeps its data to itself. The only place that all four tabs read from is root, so values that every tab should see belong in a <a href="units.html">root unit</a>.</p>
+<h2 id="a-way-to-use-them">A way to use them</h2>
+<p>Nothing ties a tab to a job, but a layout like this works well:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>the prompt you work at</td>
+</tr>
+<tr>
+<td>2</td>
+<td>long computations, such as <code>mandel</code> or a big bignum</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="scrawl.html">scrawl</a> on the root unit you are editing</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>top</code> or <code>clock</code>, left running</td>
+</tr>
+</tbody>
+</table>
+<p>Every tab has its own definitions, so tab 1 can try a new version of a word while tab 3 still has the old one. When the new version works, put it in root with <code>&#x27;name open</code>, and all four tabs use it.</p>
+<h2 id="titles-in-programs">Titles in programs</h2>
+<p>A full-screen program usually sets the title when it starts and puts <code>omega</code> back when it ends, so the tab bar shows what each tab is doing:</p>
+<pre><code>[ &quot;busy&quot; title
+  3 [ &quot;working&quot; say 100 sleep ] times
+  &quot;omega&quot; title
+] :job
+</code></pre>
+<p>If the program fails halfway, the title stays as it was, because titles are not part of the <a href="world.html">world</a> and are not undone. <code>clock</code> and <code>top</code> work this way, and <code>&#x27;clock see</code> shows how.</p>
+<h2 id="stopping-a-tab">Stopping a tab</h2>
+<p>Ctrl-C stops the line that is running in the front tab, with the error <code>interrupted</code>, and the line is undone. Every built-in loop and the interpreter check for it between steps.</p>
+<p>A line can still ignore Ctrl-C, for example when it is stuck inside one long built-in word. In that case, switch to another tab and leave it. A stuck tab does not stop the others. One tab cannot stop another, but <code>reboot</code> in any tab restarts the machine. On an installed disk this is safe, because every finished line has already been <a href="saving.html">saved</a>.</p>
+<h2 id="faults">Faults</h2>
+<p>If the code in a tab makes the processor report an error, for example by reading an address above the 4 GiB that the system maps, only that tab is affected. It starts again at its prompt, reports the fault and says that the last line was dropped, and its world is the same as before the line. The other tabs do not notice.</p>
+<h2 id="startup">Startup</h2>
+<p>At boot, each tab loads its saved world if Subverge is installed. Tab 1 then runs <code>startup</code>, which shows the system information and asks the first-boot questions (<a href="startup.html">startup</a>). Tabs 2 to 4 start at an empty prompt.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screen - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="screen">Screen</h1>
+<p>This page describes the text screen, the words that draw on it and the graphics mode that <code>gfx</code> starts. Every tab and every program uses them.</p>
+<p>Subverge normally uses an 80 by 25 text screen. Row 0 is the tab bar, and the rest belongs to the current <a href="tabs.html">tab</a>. <code>gfx</code> starts a separate <a href="#graphics-mode">graphics mode</a>.</p>
+<h2 id="tabs-have-their-own-screens">Tabs have their own screens</h2>
+<p>Each tab has an 80 by 24 buffer of it is own, in memory. Everything a tab prints or draws goes into it&#x27;s buffer, and the buffer of the visible tab is copied to the real screen at <code>0xB8000</code>. When you switch tabs, the new tab&#x27;s buffer is shown, exactly as it was left. So <code>snake</code> in tab 3 keeps its picture while you&#x27;re in tab 1, and a tab can draw while you&#x27;re on another one. If a tab writes to its screen while you&#x27;re not looking at it, its name in the tab bar gets a <code>*</code>.</p>
+<h2 id="drawing-words">Drawing words</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>put</code></td>
+<td><code>ch x y color --</code></td>
+<td>one character at x, y</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td><code>s x y color --</code></td>
+<td>a string starting at x, y</td>
+</tr>
+<tr>
+<td><code>screen@</code></td>
+<td><code>x y -- ch color</code></td>
+<td>read one back</td>
+</tr>
+<tr>
+<td><code>wipe</code></td>
+<td><code>--</code></td>
+<td>clear the tab&#x27;s screen</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code>x y --</code></td>
+<td>move the cursor</td>
+</tr>
+<tr>
+<td><code>nocursor</code></td>
+<td><code>--</code></td>
+<td>hide it</td>
+</tr>
+<tr>
+<td><code>where</code></td>
+<td><code>-- x y</code></td>
+<td>where it is</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code>-- w h</code></td>
+<td>the width and height of the tab&#x27;s window, <code>80 24</code> when it has the whole screen</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code>s --</code></td>
+<td>rename the tab</td>
+</tr>
+</tbody>
+</table>
+<p>Coordinates start at <code>0 0</code>, the top-left of the tab&#x27;s area, under the tab bar. <code>cursor</code> moves the cursor without showing it, and anything printed afterwards starts there. Despite the name, it is not the opposite of <code>nocursor</code>.</p>
+<p><code>put</code> and <code>text</code> do not move the cursor and do not scroll. <code>say</code> and <code>write</code> do both. Programs that draw a full screen use <code>wipe</code>, <code>nocursor</code>, then <code>put</code> and <code>text</code>, and never print. See <a href="games.html">games</a> for the pattern.</p>
+<h2 id="colours">Colours</h2>
+<p>Text mode has 16 colours, numbered 0 to 15, and <code>colors</code> shows them all. The kernel loads them from the current <a href="themes.html">theme</a> at boot and whenever the theme changes, so they are not the usual VGA colours. Each number keeps its role in every theme: 0 is the background, 7 normal text, 8 dim text, 12 errors and 14 the accent.</p>
+<p>All sixteen work as background colours too. The kernel switches off the VGA blink bit at boot, which would otherwise turn backgrounds 8 to 15 into blinking text on a darker background.</p>
+<p><code>color</code> sets the colour for printed text, foreground only. <code>put</code> and <code>text</code> take a full attribute byte, which is the foreground plus 16 times the background, and <code>attr</code> builds one for you:</p>
+<pre><code>14 1 attr           the accent on colour 1
+&quot;hi&quot; 10 5 14 1 attr text
+</code></pre>
+<p><code>fill</code> draws a row of one character, <code>bar</code> draws a meter that is some percent full, and <code>header</code> draws a title bar accross the top. They&#x27;re in root, under util.</p>
+<h2 id="characters-that-werenx27t-there">Characters that weren&#x27;t there</h2>
+<p>The kernel adds <code>ω</code>, <code>ℵ</code> and the subscript digits 0 to 9 to the font, at the codes <code>0x80</code> to <code>0x8B</code>. The <a href="ordinals.html">ordinals</a> print with them as <code>ω</code> and the <a href="cardinals.html">cardinals</a> as <code>ℵ₀</code>. In a string, <code>\w</code> is <code>ω</code> and <code>\A</code> is <code>ℵ</code>. The subscript digits have no escape, so use <code>130 chr</code> and up.</p>
+<h2 id="the-tab-bar">The tab bar</h2>
+<p>Row 0 is drawn by the kernel, not by any tab, so you cannot draw over it with <code>put</code>. It shows the four tab titles, highlights the current one, marks the ones with something new with <code>*</code>, and shows the clock at the right edge. The clock is the machine&#x27;s real-time clock, which in QEMU is UTC by default.</p>
+<h2 id="graphics-mode">Graphics mode</h2>
+<p><code>gfx</code> switches the screen to 640 by 480 graphics, and <code>gfx-off</code> switches back to the text screen. The drawing words below use the sixteen colours of the current <a href="themes.html">theme</a>. Pictures and bitmaps use any 24-bit colour and are described in <a href="pictures.html">pictures</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gfx</code></td>
+<td><code>--</code></td>
+<td>start graphics mode, with the screen cleared to colour 0</td>
+</tr>
+<tr>
+<td><code>gfx-off</code></td>
+<td><code>--</code></td>
+<td>back to the text screen</td>
+</tr>
+<tr>
+<td><code>dot</code></td>
+<td><code>x y col --</code></td>
+<td>set one pixel</td>
+</tr>
+<tr>
+<td><code>box</code></td>
+<td><code>x y w h col --</code></td>
+<td>fill a rectangle</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td><code>x y w h title --</code></td>
+<td>draw a titled frame</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td><code>s x y col --</code></td>
+<td>draw a string at pixel x, y, 8 pixels per character</td>
+</tr>
+</tbody>
+</table>
+<p>Coordinates start at <code>0 0</code> in the top-left corner, and anything outside the screen is cut off. Colours are the same numbers as in text mode, 0 to 15. <code>dot</code>, <code>box</code> and <code>window</code> fail when it is not running.</p>
+<pre><code>gfx 20 20 100 60 5 box key drop gfx-off
+</code></pre>
+<p>draws a rectangle, waits for a key and goes back to text.</p>
+<p>The picture is eight <code>box</code> calls, one per line, after <code>gfx</code>:</p>
+<pre><code>0 0 640 480 1 box
+60 60 360 220 0 box
+60 60 360 20 5 box
+84 110 160 24 2 box
+84 150 240 24 9 box
+84 190 100 24 14 box
+300 300 240 120 4 box
+330 330 180 60 6 box
+</code></pre>
+<p>The text screen is not shown in graphics mode, so the prompt and anything the tabs print are hidden. The tabs keep running and keep their screens, and a word that fails shows its error once you&#x27;re back. F1 to F4 and alt-1 to alt-4 switch tabs and also leave graphics mode, which is the way out when you cannot see the prompt. Use <code>theme</code> and <code>rgb</code> before <code>gfx</code>, since they set the text screen&#x27;s colours.</p>
+<p><code>bitmap</code>, <code>bmp-show</code> and the other words for full-colour drawing are in <a href="pictures.html">pictures</a>.</p>
+<p><code>gfx</code> needs QEMU&#x27;s default <code>-vga std</code> display, which is the one that has the Bochs display registers at ports <code>0x1CE</code> and <code>0x1CF</code> (<a href="ports.html">ports</a>). On anything else it fails.</p>
+<h2 id="poking-it">Poking it</h2>
+<p><code>poke</code> can write into <code>0xB8000</code> directly. What it writes is overwritten the next time the visible tab is drawn. See <a href="memory.html">memory</a> for the details.</p>
+<h2 id="why-80-by-25">Why 80 by 25</h2>
+<p>VGA text mode is 80 by 25. Every program in <a href="root.html">root</a> is drawn for it. Graphics mode is a separate screen and does not change the text one.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

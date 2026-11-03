@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Errors - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="errors">Errors</h1>
+<p>A failing word prints its message in red after a <code>!</code>, and the whole line is undone (<a href="transactions.html">transactions</a>). This page describes the kinds of errors and what usually causes them. The exact wording can change between versions, so the page does not quote it.</p>
+<h2 id="things-that-explain-themselves">Things that explain themselves</h2>
+<p>Some errors say plainly what is wrong: dividing by zero, taking an item from an empty list, asking for a position outside a list, brackets or strings that are never closed, a closing bracket with no opening one, a name that is not defined, a full stack, a power that is not allowed, and similar mistakes. Read the message and fix the line.</p>
+<h2 id="things-that-need-a-note">Things that need a note</h2>
+<p>An error that is raised with <code>fail</code> shows the text the program gave it. A message that you cannot find in these pages probably comes from the program&#x27;s own check (<a href="catching.html">catching</a>).</p>
+<ul>
+<li><strong>Too few values on the stack.</strong> A value was used up earlier, or never pushed. <code>&#x27;word help</code> shows what the word expects.</li>
+<li><strong>A word wants a number.</strong> Usually the arguments are in the wrong order, as in <code>[ body ] 10 times</code> instead of <code>10 [ body ] times</code>.</li>
+<li><strong>A value of the wrong type.</strong> <code>&quot;5&quot; 1 +</code> fails where <code>&quot;5&quot; &gt;num 1 +</code> works, and <code>cat</code> does not join a string to a list.</li>
+<li><strong>A string that is not a number.</strong> <code>&gt;num</code> does not skip spaces.</li>
+<li><strong><code>map</code> with a quote that leaves the wrong number of values.</strong> The quote must leave exactly one value for each item. Use <code>filter</code> to drop items.</li>
+<li><strong>Too many local names.</strong> More than 256 locals were alive at once, almost always because a recursive word binds locals at every level (<a href="flow.html">flow</a>).</li>
+<li><strong>Nested too deep.</strong> Usually a recursive word that never reaches its base case.</li>
+<li><strong>A name that is not defined in this tab.</strong> <code>forget</code> removes only the definitions of your own tab (<a href="names.html">names</a>).</li>
+<li><strong>No help for a word.</strong> Your own words have no help entries (<a href="help.html">help</a>).</li>
+<li><strong>A bignum where a machine integer is needed.</strong> Words such as <code>times</code>, <code>at</code>, <code>peek</code> and the bitwise words need numbers that fit in 64 bits (<a href="numbers.html">numbers</a>).</li>
+<li><strong>A number that is too big.</strong> The result would have more than about 19,700 digits.</li>
+<li><strong>A bignum mixed with an ordinal in the wrong order.</strong> A bignum on the right of ordinal arithmetic, as in <code>omega 2 100 ^ +</code>, is refused. On the left it is absorbed, so <code>2 100 ^ omega +</code> is <code>omega</code>.</li>
+<li><strong>A structure over one of the <a href="limits.html">limits</a>.</strong> A range, a split, a quote or a nesting of brackets can be too large.</li>
+<li><strong>A value that cannot go on the stack.</strong> Ordinary omega code cannot cause this, so it is a bug in Subverge.</li>
+<li><strong>A theme that does not exist.</strong> <code>theme</code> takes the name of one of the built-in themes as a symbol, as in <code>&#x27;raw theme</code>. You cannot define themes in omega (<a href="themes.html">themes</a>).</li>
+<li><strong>Sorting the wrong things.</strong> <code>sort</code> orders numbers (bignums included) or strings, and every item must be the same kind. To sort records, map the list to keys first.</li>
+</ul>
+<h2 id="infinity">Infinity</h2>
+<ul>
+<li><strong>An ordinal coefficient that is too big.</strong> The coefficient of an ordinal grew past 2^64, as in <code>omega 4294967296 * 4294967296 *</code>. Coefficients are machine integers, not bignums (<a href="infinity.html">how infinity works</a>).</li>
+<li><strong>Operations that infinite values do not support.</strong> Ordinals and cardinals support only <code>+</code>, <code>*</code> and <code>^</code>. There is no subtraction or division (<a href="ordinals.html">ordinals</a>).</li>
+<li><strong>A negative number in ordinal arithmetic.</strong> Ordinals are never negative, so <code>omega -3 +</code> fails.</li>
+<li><strong>Mixing cardinals with other values.</strong> Ordinals and cardinals cannot be combined directly. Convert the ordinal with <code>card</code> first.</li>
+<li><strong>A cardinal power that cannot be computed or written out.</strong></li>
+<li><strong>A comparison that depends on the continuum hypothesis.</strong> It cannot be decided in ZFC, the usual foundation of mathematics (<a href="cardinals.html">cardinals</a>).</li>
+</ul>
+<h2 id="screen">Screen</h2>
+<ul>
+<li><strong>A help page that does not exist.</strong> <code>&quot;foo&quot; doc</code> named a page that is not in the system. Pages are named after their files, such as <code>prompt</code>, and <code>a-to-z</code> lists them (<a href="help.html">help</a>).</li>
+<li><strong>Drawing before graphics mode is on.</strong> <code>dot</code> and <code>box</code> need <code>gfx</code> first (<a href="screen.html">screen</a>).</li>
+<li><strong>Too many bitmaps.</strong> Sixteen bitmaps exist already, and <code>bmp-free</code> gives one back (<a href="pictures.html">pictures</a>).</li>
+<li><strong>Not a bitmap.</strong> A word that works on a bitmap was given a number that <code>bitmap</code> or <code>picture</code> did not return, or the bitmap was already freed.</li>
+<li><strong>A picture that does not exist.</strong> <code>&quot;foo&quot; picture</code> named a picture that is not built in, and <code>pictures</code> lists them (<a href="pictures.html">pictures</a>).</li>
+<li><strong>A picture that cannot be read.</strong> The JPEG data is cut off or wrong, uses an unsupported kind of JPEG, or there is not enough memory.</li>
+<li><strong>No graphics display.</strong> <code>gfx</code> was used on a display that does not have the Bochs registers. Start QEMU with <code>-vga std</code> (<a href="screen.html">screen</a>).</li>
+</ul>
+<h2 id="root">Root</h2>
+<ul>
+<li><strong>A word that is not in any root unit.</strong> <code>open</code> and <code>src</code> work only on root words. Use <code>edit</code> for the definitions of a tab (<a href="root.html">root</a>).</li>
+<li><strong>An edit that did not build.</strong> Root stays as it was, and your edit is kept as a draft (<a href="root.html">root</a>).</li>
+</ul>
+<h2 id="the-jit">The JIT</h2>
+<ul>
+<li><strong>A quote that cannot be compiled, or has no machine code yet.</strong> The <a href="jit.html">JIT</a> either cannot compile the quote or has not done it yet. Run it twice, or use <code>compile</code>.</li>
+</ul>
+<h2 id="disks">Disks</h2>
+<ul>
+<li><strong>A kernel that does not fit its slot.</strong> This only happens with a much larger custom kernel (<a href="disk-layout.html">disk layout</a>).</li>
+<li><strong>A failed write to the drive.</strong> In QEMU this usually means a read-only image, or a full disk on the host.</li>
+</ul>
+<h2 id="faults">Faults</h2>
+<p>If the processor reports a fault, the system tells you which one and says that your last line was dropped. The tab restarts with its world as it was (<a href="scheduler.html">scheduler</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

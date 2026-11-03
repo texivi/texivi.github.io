@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Numbers - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="numbers">Numbers</h1>
+<p>Integers are exact. Up to 64 bits they are stored directly, and a result that does not fit becomes a bignum of up to 2^65536. For infinite values, see <a href="ordinals.html">ordinals</a> and <a href="cardinals.html">cardinals</a>.</p>
+<h2 id="literals">Literals</h2>
+<pre><code>42   -7   0x2a   0b101010   -0x10
+</code></pre>
+<p>You can write integers in decimal, in hex with <code>0x</code>, or in binary with <code>0b</code>, with an optional minus sign. Hex digits can be upper or lower case. A number that is too big for 64 bits is read as a bignum:</p>
+<pre><code>123456789012345678901234567890 .
+</code></pre>
+<p><code>bases</code> prints a number in decimal, hex, octal and binary (<a href="tools.html">tools</a>).</p>
+<h2 id="arithmetic">Arithmetic</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>+</code></td>
+<td><code>a b -- c</code></td>
+<td>adds</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td><code>a b -- c</code></td>
+<td>subtracts</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td><code>a b -- c</code></td>
+<td>multiplies</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td><code>a b -- c</code></td>
+<td>divides, rounding toward zero</td>
+</tr>
+<tr>
+<td><code>mod</code></td>
+<td><code>a b -- r</code></td>
+<td>the remainder, with the sign of a</td>
+</tr>
+<tr>
+<td><code>^</code></td>
+<td><code>a b -- c</code></td>
+<td>a to the power b</td>
+</tr>
+<tr>
+<td><code>neg</code></td>
+<td><code>a -- -a</code></td>
+<td>flips the sign</td>
+</tr>
+<tr>
+<td><code>abs</code></td>
+<td><code>a -- b</code></td>
+<td>drops the sign</td>
+</tr>
+<tr>
+<td><code>min</code></td>
+<td><code>a b -- c</code></td>
+<td>the smaller</td>
+</tr>
+<tr>
+<td><code>max</code></td>
+<td><code>a b -- c</code></td>
+<td>the bigger</td>
+</tr>
+<tr>
+<td><code>sqrt</code></td>
+<td><code>n -- r</code></td>
+<td>the square root, rounded down</td>
+</tr>
+<tr>
+<td><code>gcd</code></td>
+<td><code>a b -- c</code></td>
+<td>the greatest common divisor</td>
+</tr>
+<tr>
+<td><code>inc</code></td>
+<td><code>n -- n+1</code></td>
+<td>adds one</td>
+</tr>
+<tr>
+<td><code>dec</code></td>
+<td><code>n -- n-1</code></td>
+<td>subtracts one</td>
+</tr>
+<tr>
+<td><code>sq</code></td>
+<td><code>n -- n*n</code></td>
+<td>squares</td>
+</tr>
+</tbody>
+</table>
+<p>All of them accept bignums. <code>+</code>, <code>*</code> and <code>^</code> also work on <a href="ordinals.html">ordinals</a> and <a href="cardinals.html">cardinals</a>, which have their own rules.</p>
+<pre><code>17 5 /          3
+-17 5 /         -3
+-17 5 mod       -2
+2 10 ^          1024
+10 sqrt         3
+84 36 gcd       12
+</code></pre>
+<h2 id="division-and-remainders">Division and remainders</h2>
+<p><code>/</code> rounds toward zero and <code>mod</code> takes the sign of the number being divided, the same as in C. Two things catch people out:</p>
+<ul>
+<li>A test for odd numbers written as <code>2 mod 1 =</code> is false for negative odd numbers, because <code>-3 2 mod</code> is <code>-1</code>. Write <code>2 mod 0 = not</code> instead.</li>
+<li>Turning a negative number of seconds into minutes with <code>/</code> rounds toward zero, not down.</li>
+</ul>
+<p>Dividing by zero fails. Dividing the most negative 64-bit integer by <code>-1</code> gives a bignum instead of overflowing.</p>
+<h2 id="powers-and-roots">Powers and roots</h2>
+<p><code>^</code> raises a number to a whole power that is not negative, exactly. Negative powers fail. A power whose result would be larger than 2^65536 fails before it is worked out, so <code>2 70000 ^</code> fails at once instead of running out of memory.</p>
+<p><code>sqrt</code> rounds down and works on bignums: <code>2 200 ^ sqrt</code> is exactly <code>2 100 ^</code>. Negative numbers fail. <code>gcd</code> always gives a result that is not negative, and <code>0 0 gcd</code> is <code>0</code>.</p>
+<h2 id="big-numbers">Big numbers</h2>
+<p>Integers never wrap around. A result that does not fit in 64 bits becomes a bignum, and a bignum result that fits again becomes a plain integer:</p>
+<pre><code>2 100 ^ .                   1267650600228229401496703205376
+2 100 ^ 2 100 ^ - .         0
+2 1000 ^ str len .          302
+</code></pre>
+<p>Your code does not see the switch. Every arithmetic and comparison word accepts both kinds, and so do <code>str</code>, <code>&gt;num</code>, <code>min</code>, <code>max</code>, conditions and saving. Compiled code checks for overflow after every addition, subtraction and multiplication, and calls the bignum code when it happens (<a href="jit.html">JIT</a>).</p>
+<p>Words that need a machine integer, such as <code>times</code>, <code>at</code>, <code>peek</code>, <code>alloc</code> and the bitwise words, fail with <code>name needs a number that fits in 64 bits</code>. In a condition a bignum is always true, because a bignum is never zero.</p>
+<p>The limit is 2^65536, which is about 19,700 decimal digits. A larger result fails. See <a href="bignums.html">bignums</a> for how they are stored and calculated.</p>
+<h2 id="comparisons-and-truth">Comparisons and truth</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>=</code></td>
+<td><code>a b -- 1/0</code></td>
+<td>equal</td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td>
+<td><code>a b -- 1/0</code></td>
+<td>ordering</td>
+</tr>
+<tr>
+<td><code>and</code> <code>or</code></td>
+<td><code>a b -- 1/0</code></td>
+<td>logical</td>
+</tr>
+<tr>
+<td><code>not</code></td>
+<td><code>a -- 1/0</code></td>
+<td>logical not</td>
+</tr>
+</tbody>
+</table>
+<p>Comparisons leave <code>1</code> or <code>0</code>. Conditions treat <code>0</code> as false and every other number as true. <code>and</code> and <code>or</code> look at both sides, because both are already on the stack, and they always leave <code>1</code> or <code>0</code>.</p>
+<p><code>=</code> works on any two values: numbers by value, strings by content, and everything else by identity. The ordering words accept numbers, ordinals and cardinals.</p>
+<h2 id="bits">Bits</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&amp;</code></td>
+<td><code>a b -- c</code></td>
+<td>and</td>
+</tr>
+<tr>
+<td><code>\|</code></td>
+<td><code>a b -- c</code></td>
+<td>or</td>
+</tr>
+<tr>
+<td><code>xor</code></td>
+<td><code>a b -- c</code></td>
+<td>exclusive or</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td><code>a -- b</code></td>
+<td>not</td>
+</tr>
+<tr>
+<td><code>&lt;&lt;</code></td>
+<td><code>a n -- b</code></td>
+<td>shift left</td>
+</tr>
+<tr>
+<td><code>&gt;&gt;</code></td>
+<td><code>a n -- b</code></td>
+<td>shift right, filling with zeros</td>
+</tr>
+</tbody>
+</table>
+<p>The bitwise words work on 64-bit integers only. Shift counts are taken modulo 64, and <code>&gt;&gt;</code> is a logical shift, so <code>-1 60 &gt;&gt;</code> is <code>15</code>. Remember that <code>and</code> is logical and <code>&amp;</code> works on bits: <code>12 10 and</code> is <code>1</code>, but <code>12 10 &amp;</code> is <code>8</code>.</p>
+<h2 id="random-numbers">Random numbers</h2>
+<p><code>n rand</code> gives a number from 0 to n-1. It uses a xorshift generator that is seeded from the cycle counter of the processor at the first call. Use it for games and shuffling, not for secrets, because its whole state is one 64-bit number. <code>rand</code> fails for zero or less.</p>
+<pre><code>6 rand 1 + .            a dice roll
+</code></pre>
+<h2 id="converting">Converting</h2>
+<p><code>str</code> and <code>hex</code> turn numbers into text, <code>&gt;hex</code> adds the <code>0x</code>, and <code>&gt;num</code> reads a number back from a string (<a href="strings.html">strings</a>). <code>fmt</code> pads a number to fit a column.</p>
+<h2 id="fractions">Fractions</h2>
+<p>Floating point numbers are on the <a href="roadmap.html">roadmap</a>. Until then, write fractions as fixed point: multiply by a scale, keep integers, and divide when you print.</p>
+<pre><code>1999 3 * .                  5997, which is 59.97 at a scale of 100
+5997 100 / .                59
+5997 100 mod .              97
+</code></pre>
+<p>The bundled programs do this: the unit conversions in <code>convert</code> work in hundredths, and <code>mandel</code> uses 65536 as 1.0. <code>calc</code> is a separate calculator that works with six decimal places (<a href="tools.html">tools</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

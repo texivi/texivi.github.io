@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="help">Help</h1>
+<p><code>help</code> is the manual built into Subverge. Every built-in word and every word in <a href="root.html">root</a> has an entry, grouped by topic. The entries are part of the kernel, so they match the running version and work on the live ISO.</p>
+<h2 id="the-three-forms">The three forms</h2>
+<pre><code>help                lists the groups
+&#x27;math help          lists the words in a group
+&#x27;map help           shows one word
+</code></pre>
+<p><code>help</code> looks at the top of the stack. If it holds a symbol, <code>help</code> takes it and shows the group or word of that name. Anything else is left alone and the overview is printed.</p>
+<p><code>map help</code> without the quote runs <code>map</code> first, which fails because it has nothing to map over. <code>&#x27;map</code> pushes the name instead of running it (<a href="names.html">names</a>).</p>
+<h2 id="a-group">A group</h2>
+<p>A group page lists each word with it is stack effect and a one-line description:</p>
+<p>The groups are:</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>syntax</code></td>
+<td>brackets, <code>:name</code>, <code>-&gt;name</code>, <code>{ }</code>, <code>&#x27;name</code>, strings and comments</td>
+</tr>
+<tr>
+<td><code>stack</code></td>
+<td>moving values around</td>
+</tr>
+<tr>
+<td><code>math</code></td>
+<td>arithmetic</td>
+</tr>
+<tr>
+<td><code>logic</code></td>
+<td>comparisons and bit operations</td>
+</tr>
+<tr>
+<td><code>flow</code></td>
+<td>choices and loops</td>
+</tr>
+<tr>
+<td><code>lists</code></td>
+<td>lists, which are also quotes</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>strings</td>
+</tr>
+<tr>
+<td><code>io</code></td>
+<td>printing and keys</td>
+</tr>
+<tr>
+<td><code>keys</code></td>
+<td>key bindings and line editing</td>
+</tr>
+<tr>
+<td><code>names</code></td>
+<td>definitions</td>
+</tr>
+<tr>
+<td><code>world</code></td>
+<td>history, saving, root, <code>apropos</code></td>
+</tr>
+<tr>
+<td><code>infinity</code></td>
+<td>ordinals and cardinals</td>
+</tr>
+<tr>
+<td><code>memory</code></td>
+<td>raw memory</td>
+</tr>
+<tr>
+<td><code>ports</code></td>
+<td>ports, the CPU and PCI</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>clocks and counters</td>
+</tr>
+<tr>
+<td><code>screen</code></td>
+<td>drawing on the screen</td>
+</tr>
+<tr>
+<td><code>machine</code></td>
+<td>hardware and drives</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td>the JIT and the disassembler</td>
+</tr>
+<tr>
+<td><code>tools</code></td>
+<td>ready-made utilities</td>
+</tr>
+<tr>
+<td><code>demos</code></td>
+<td>math demos</td>
+</tr>
+<tr>
+<td><code>games</code></td>
+<td>games and toys</td>
+</tr>
+<tr>
+<td><code>phi</code></td>
+<td>the phi store of named values</td>
+</tr>
+<tr>
+<td><code>util</code></td>
+<td>small helpers</td>
+</tr>
+<tr>
+<td><code>helpers</code></td>
+<td>words the utilities use inside</td>
+</tr>
+</tbody>
+</table>
+<h2 id="help-from-the-keyboard">Help from the keyboard</h2>
+<p>C-h k, C-h f, C-h a, C-h b and C-h i ask about a key, a word, a text, the bindings and the help pages from the prompt, and <code>describe-key</code>, <code>apropos</code> and <code>bindings</code> are the words behind them (<a href="keys.html">keys</a>).</p>
+<h2 id="a-word">A word</h2>
+<p>A word page shows the description, the stack effect spelled out, an example and the group it belongs to:</p>
+<h2 id="reading-stack-effects">Reading stack effects</h2>
+<p>Stack effects are written as what the word takes, then <code>--</code>, then what it leaves, with the top of the stack on the right:</p>
+<pre><code>dup     a -- a a
+swap    a b -- b a
+at      l i -- x
+pad     s n -- str
+</code></pre>
+<p>The letters follow a loose convention: <code>n</code> and <code>i</code> are numbers, <code>s</code> and <code>str</code> strings, <code>l</code> a list, <code>q</code> code to run, <code>&#x27;x</code> a name, and <code>a</code>, <code>b</code> and <code>x</code> any value. A word page spells the effect out, as in <code>takes l i, leaves x</code>, followed by a reminder of the convention.</p>
+<h2 id="words-without-an-entry">Words without an entry</h2>
+<p>Words you define yourself have no entry. <code>help</code> recognises them and says so:</p>
+<pre><code>[ dup * ] :sq2
+&#x27;sq2 help
+  sq2 is yours. Type &#x27;sq2 see to read it.
+</code></pre>
+<p>For a name that is defined nowhere, <code>help</code> fails because there is no entry. <code>see</code> prints your own definitions, and comments in a <a href="units.html">root unit</a> stay in it&#x27;s source, where <code>&#x27;name open</code> shows them.</p>
+<h2 id="apropos">apropos</h2>
+<pre><code>&quot;string&quot; apropos
+</code></pre>
+<p>searches the name and the description of every entry, ignoring case, and lists the matches with their groups:</p>
+<p>The search is a plain substring match, so <code>&quot;sort&quot; apropos</code> finds <code>sort</code>, <code>sorting</code> and <code>sort-col</code>, and a short search such as <code>&quot;a&quot;</code> matches nearly everything.</p>
+<h2 id="other-ways-to-look-things-up">Other ways to look things up</h2>
+<ul>
+<li><code>words</code> lists the definitions in your tab, with their values.</li>
+<li><code>&#x27;name see</code> prints a definition, marked <code>(root)</code> if it comes from root.</li>
+<li><code>root</code> lists the units of root and the words each one defines.</li>
+<li><code>apps</code> lists the programs (<a href="apps.html">apps</a>).</li>
+<li><a href="learn.html">learn</a> teaches the language from the beginning, one screen at a time.</li>
+</ul>
+<p><a href="words.html">Words</a> introduces the everyday ones, and the <a href="words.html">index of words</a> has a page for each.</p>
+<h2 id="the-pages">The pages</h2>
+<p><code>docs</code> opens the index of the help pages and <code>&quot;name&quot; doc</code> opens one by name, for example <code>&quot;first-steps&quot; doc</code>. Every word in the <a href="words.html">index of words</a> has a page, and <code>[text](#)</code> links in a page open the page of a word. Up, Down, PgUp, PgDn, Home and End scroll, Space pages down, Tab selects the next link and Enter follows it. Backspace goes back and <code>q</code> or Esc leaves. Enter on a line of code closes the viewer and runs the line at the prompt. With a mouse, a click follows a link or runs a code line, the wheel scrolls and a right click goes back.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

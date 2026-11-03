@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="world">World</h1>
+<p>A &quot;world&quot; is everything omega remembers about one <a href="tabs.html">tab</a>: its <a href="stack.html">stack</a> and the definitions you made in it. <a href="transactions.html">Transactions</a>, <a href="back.html">back</a> and <a href="saving.html">saving</a> all work on worlds. A line gives the tab a new world or leaves it as it was, <code>back</code> returns to an older world, and saving writes the current world to disk.</p>
+<h2 id="what-a-world-holds">What a world holds</h2>
+<ul>
+<li>The stack, every value on it, bottom to top.</li>
+<li>The definitions made in the tab with <code>:name</code>, <code>edit</code> or <code>forget</code>, newest first.</li>
+</ul>
+<p>Each of the four tabs has its own world.</p>
+<h2 id="kept-outside-a-world">Kept outside a world</h2>
+<p>These are kept somewhere else and follow their own rules:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Where it lives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>root words</td>
+<td><a href="root.html">root</a>, shared by all tabs, edited with <code>open</code></td>
+</tr>
+<tr>
+<td>locals from <code>{ }</code> and <code>-&gt;</code></td>
+<td>the running quote, gone when it finishes</td>
+</tr>
+<tr>
+<td>the screen</td>
+<td>the tab&#x27;s screen buffer, never undone</td>
+</tr>
+<tr>
+<td>the tab&#x27;s title</td>
+<td>the tab, reset on reboot</td>
+</tr>
+<tr>
+<td>memory, ports, the CPU</td>
+<td>the machine, changed the moment a word runs</td>
+</tr>
+<tr>
+<td>prompt history</td>
+<td>the tab, text only</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a-new-world-per-line">A new world per line</h2>
+<p>A line starts from the current world of the tab and works on a copy. When the line is finished:</p>
+<ul>
+<li>if it failed, the copy is thrown away and the world stays as it was;</li>
+<li>if it worked and changed the stack or the definitions, the copy becomes the new world and the old one goes into the history;</li>
+<li>if it worked without changing anything, it leaves no trace.</li>
+</ul>
+<p>The history keeps the last 64 worlds, and <code>back</code> returns to them. A line that only prints or looks at something, such as <code>words</code> or <code>top</code>, does not add a world, so <code>back</code> skips it.</p>
+<p>Keeping 64 old worlds takes little memory. Defining a word adds one entry in front of the existing definitions instead of copying them, so successive worlds share almost everything (<a href="worlds.html">how worlds work</a>).</p>
+<h2 id="an-example">An example</h2>
+<p>Each line below either makes a new world or does not:</p>
+<pre><code>1 2                 new world: the stack is 1 2
+[ dup dup * * ] :cube   new world: cube is defined
+words               no new world, it only prints
+3 cube              new world: the stack is 1 2 27
+0 /                 fails, the world stays 1 2 27
+back                returns to the world before 3 cube
+back                returns to the world before cube was defined
+</code></pre>
+<p>After the two <code>back</code>s the stack is <code>1 2</code> and <code>cube</code> is gone. <code>redo</code> would bring <code>cube</code> back. <code>words</code> and the failed line never made a world, so <code>back</code> skipped them.</p>
+<h2 id="looking-at-your-world">Looking at your world</h2>
+<pre><code>words               every definition, with its value
+depth .             how many values are on the stack
+depth list .        the whole stack as one list
+&#x27;sq see             one definition
+stats               five numbers about the tab
+</code></pre>
+<p><code>words</code> lists the newest definition of each name, and leaves out names that were removed with <code>forget</code>. A tab with nothing defined says so.</p>
+<p><code>stats</code> gives the number of live objects in the memory of the tab, how many garbage collections have run, the number of definition entries, the depth of the stack and the length of the history:</p>
+<pre><code>stats . . . . .
+</code></pre>
+<p><code>top</code> shows the same numbers for the tab it runs in, and keeps them up to date.</p>
+<h2 id="changing-it">Changing it</h2>
+<p>You add definitions with <code>:name</code> and remove them with <code>forget</code>:</p>
+<pre><code>[ dup * ] :sq
+&#x27;sq forget
+</code></pre>
+<p><code>forget</code> adds an entry that hides the name instead of deleting the old one, so <code>back</code> can still undo it, and a root word with the same name shows again (<a href="names.html">names</a>). <code>forget</code> only works on names that were defined in the tab.</p>
+<p><code>empty</code> clears the stack in one step.</p>
+<h2 id="worlds-and-saving">Worlds and saving</h2>
+<p>On an installed disk, the world is saved to the slot of the tab after every line that changes it. What is saved is the newest definition of each name and the stack, as omega source (<a href="saving.html">saving</a>). The history is not saved, so after a reboot the tab has its world but nothing to go <code>back</code> to.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

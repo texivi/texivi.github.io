@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="prompt">Prompt</h1>
+<p>The &quot;prompt&quot; is the <code>»</code> where you type omega code. Each tab has it&#x27;s own prompt, its own history of earlier lines and its own queue of keys. What you type runs as one <a href="transactions.html">transaction</a> when you press Enter.</p>
+<h2 id="what-the-prompt-shows">What the prompt shows</h2>
+<p>In front of the <code>»</code>, the prompt prints the stack of the tab in grey, from bottom to top:</p>
+<pre><code>1 2 [ dup * ] »
+</code></pre>
+<p>An empty stack prints nothing in front of the <code>»</code>. A long stack is cut on the left and shown with <code>..</code> in front, so the top of the stack, which is what the next word will see, is always visible.</p>
+<p>The stack that is shown is the committed one. While a line is running, nothing is printed until it finishes.</p>
+<h2 id="editing-keys">Editing keys</h2>
+<p>You edit a line at the prompt with Control and Alt keys. The full table is on the <a href="keys.html">keys</a> page. These are the ones used most:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RET</td>
+<td>runs the line</td>
+</tr>
+<tr>
+<td>C-a, C-e</td>
+<td>move to the start or end of the line</td>
+</tr>
+<tr>
+<td>C-b, C-f, M-b, M-f</td>
+<td>move by character or by word</td>
+</tr>
+<tr>
+<td>DEL, C-d</td>
+<td>delete before or at the cursor</td>
+</tr>
+<tr>
+<td>C-k, C-u, C-w</td>
+<td>kill to the end, to the start or the last word</td>
+</tr>
+<tr>
+<td>C-y, M-y</td>
+<td>yank the last kill, or an older one</td>
+</tr>
+<tr>
+<td>C-p, C-n</td>
+<td>step through earlier lines</td>
+</tr>
+<tr>
+<td>C-r, C-s</td>
+<td>search the earlier lines</td>
+</tr>
+<tr>
+<td>C-_</td>
+<td>undoes the last change to the line</td>
+</tr>
+<tr>
+<td>TAB</td>
+<td>completes the name before the cursor</td>
+</tr>
+<tr>
+<td>M-x</td>
+<td>runs a word by name</td>
+</tr>
+<tr>
+<td>C-c, C-g</td>
+<td>throws the line away and starts a new one</td>
+</tr>
+<tr>
+<td>F1 to F4, Alt-1 to Alt-4</td>
+<td>switch <a href="tabs.html">tab</a></td>
+</tr>
+</tbody>
+</table>
+<p>The arrow keys, Home, End and Delete move and delete as you would expect. Characters are inserted at the cursor, so you can fix a typo in the middle of a line without typing the rest again.</p>
+<p>M-x asks for a word on a new line, with completion, runs it as if you had typed it, and brings the prompt back with the line you were editing. C-h starts the help keys, such as C-h k, which tells you what a key does. You can bind keys of your own; see <a href="keys.html">keys</a>.</p>
+<h2 id="the-kill-ring">The kill ring</h2>
+<p>C-k, C-u, C-w, M-d and M-DEL kill text, which means they delete it and keep it on the kill ring. The ring holds the last eight pieces and is shared by every tab, so text killed in one tab can be yanked in another. C-y inserts the newest piece at the cursor. M-y, typed right after C-y or another M-y, replaces what was yanked with the next older piece.</p>
+<p>When a kill follows another kill with no other key in between, the text is added to the same piece. Forward kills such as C-k and M-d add at the end, and backward kills such as C-u, C-w and M-DEL add at the start. This is why typing M-d three times and then C-y brings back three words in their original order.</p>
+<h2 id="undo">Undo</h2>
+<p>C-_ undoes the last change to the line. It keeps the last 16 states of the line, and a run of typed letters counts as one change, so typing a word and pressing C-_ removes the word. A kill, a yank, a completion and a recalled line are one change each. Ctrl-/ does the same as C-_.</p>
+<h2 id="searching-the-history">Searching the history</h2>
+<p>C-r starts a search backward through the last 16 lines of the tab, and C-s starts one forward from the oldest. The prompt shows the text you have typed and the line that matches it. Typing more narrows the match, DEL shortens the text, and C-r or C-s moves to the next match in that direction. C-g puts the line back as it was. Any other key ends the search and leaves the matching line in the editor, and RET does the same without running the line.</p>
+<h2 id="where-the-keys-work">Where the keys work</h2>
+<p>The editing keys work wherever a line is read: at the prompt, in the lessons of <code>learn</code>, in <code>ask</code> and <code>calc</code>, and in the questions of the viewer, the editor and <code>dired</code>. A few keys need the real prompt of a tab, because they run words or redraw it:</p>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>At the prompt</th>
+<th>Everywhere else</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M-x, C-h and your bindings</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>C-l</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>TAB completion</td>
+<td>yes, and in the M-x question</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<h2 id="completion">Completion</h2>
+<p>Tab completes the name that ends at the cursor. The choices are the definitions of your tab, the words of root and the built-in words.</p>
+<ul>
+<li>With one match, Tab writes the rest of the name and a space.</li>
+<li>With several matches that begin the same way, Tab extends the name as far as they agree: <code>them</code> becomes <code>theme</code>, the part that <code>theme</code>, <code>theme@</code> and <code>themes</code> have in common.</li>
+<li>Otherwise Tab writes the first match in alphabetical order, and each further Tab replaces it with the next one, going around again at the end: <code>ro</code> gives <code>root</code>, <code>rot</code>, <code>row</code>, then <code>root</code> again.</li>
+</ul>
+<p>A <code>&#x27;</code>, <code>:</code> or <code>-&gt;</code> in front of the name is kept, so <code>&#x27;th</code> completes to <code>&#x27;theme</code>, <code>&#x27;themes</code> and <code>&#x27;theme@</code> in turn. Locals are not offered, because they only exist while code runs.</p>
+<p><code>ask</code> and <code>calc</code> do not complete.</p>
+<h2 id="line-length">Line length</h2>
+<p>A line holds up to 200 characters, or less when the prompt itself is wide, because the line has to fit on one screen row after the stack and the <code>»</code>. When it is full, further keys are ignored. If the stack takes up a lot of the row, <code>empty</code> or a few <code>drop</code>s give the line more room.</p>
+<p>Code that is longer than one line belongs in a definition, which you write with <code>&#x27;name edit</code> in <a href="scrawl.html">scrawl</a>, or in a <a href="units.html">root unit</a>.</p>
+<h2 id="history">History</h2>
+<p>Up and Down, or C-p and C-n, step through the last 16 lines typed in the tab. C-r searches them for text. Empty lines, and a line that is the same as the one before it, are not added. The history belongs to the tab, is not saved to disk, and holds text only: recalling a line and pressing Enter runs it again, which is different from undoing it with <a href="back.html">back</a>.</p>
+<h2 id="characters-you-can-type">Characters you can type</h2>
+<p>You can type only printable ASCII, from space to <code>~</code>. omega has a few values that print with other characters, such as <code>ω</code> and <code>ℵ₀</code>. The system draws them by redefining unused characters of the VGA font (<a href="screen.html">screen</a>). To use them:</p>
+<pre><code>omega .                      ω
+aleph0 .                     ℵ₀
+&quot;\w and \A&quot; say              ω and ℵ
+</code></pre>
+<p><code>\w</code> and <code>\A</code> work inside any string. The words <code>omega</code> and <code>aleph0</code> push the values themselves (<a href="ordinals.html">ordinals</a>, <a href="cardinals.html">cardinals</a>).</p>
+<h2 id="when-a-line-fails">When a line fails</h2>
+<p>A line that fails prints its error in red, indented under the line, and the prompt comes back with the same stack as before:</p>
+<pre><code>1 2 » 3 0 /
+  ! division by zero
+1 2 »
+</code></pre>
+<p>Keys pressed while the failing line was running are thrown away, so the next prompt starts clean. See <a href="errors.html">errors</a>.</p>
+<h2 id="when-a-line-runs-for-a-long-time">When a line runs for a long time</h2>
+<p>The prompt does not come back until the line finishes. C-c, or C-g, interrupts the line with the error <code>interrupted</code>, which also undoes it. If the line does not answer Ctrl-C, switch to another tab with F1 to F4 or Alt-1 to Alt-4. The other tabs keep running and their prompts keep working (<a href="tabs.html">tabs</a>).</p>
+<h2 id="programs-that-read-keys">Programs that read keys</h2>
+<p>Programs that you start from the prompt, such as <code>snake</code> or <code>top</code>, read keys from the same queue. When they end, the prompt returns. <code>ask</code> prints a question and reads one line with the same editing keys, but without history:</p>
+<pre><code>&quot;name? &quot; ask say
+</code></pre>
+<h2 id="help-pages">Help pages</h2>
+<p><code>docs</code> opens the help pages, and <code>&quot;name&quot; doc</code> opens one page. You can select a line of code in a page with Tab and run it with Enter, which closes the viewer and runs the line at the prompt (<a href="help.html">help</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

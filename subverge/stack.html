@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stack - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="stack">Stack</h1>
+<p>Each tab has one data stack of up to 1024 values. A word takes its arguments from the top of the stack and leaves its results there. In <code>2 3 +</code>, the numbers 2 and 3 are pushed, and <code>+</code> replaces them with 5. Apart from locals (<a href="names.html">names</a>), values pass between words only through the stack.</p>
+<h2 id="effects">Effects</h2>
+<p>A &quot;stack effect&quot; lists what a word takes and what it leaves. The top of the stack is on the right:</p>
+<pre><code>dup     a -- a a
+swap    a b -- b a
+rot     a b c -- b c a
+</code></pre>
+<p><code>&#x27;word help</code> shows the stack effect of any built-in or root word (<a href="help.html">help</a>). The letters are only labels: <code>n</code> and <code>i</code> are numbers, <code>s</code> is a string, <code>l</code> is a list, <code>q</code> is code, and <code>a</code>, <code>b</code> and <code>x</code> can be anything.</p>
+<h2 id="stack-words">Stack words</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dup</code></td>
+<td><code>a -- a a</code></td>
+<td>copies the top value</td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td><code>a --</code></td>
+<td>discards the top value</td>
+</tr>
+<tr>
+<td><code>swap</code></td>
+<td><code>a b -- b a</code></td>
+<td>swaps the top two</td>
+</tr>
+<tr>
+<td><code>over</code></td>
+<td><code>a b -- a b a</code></td>
+<td>copies the second to the top</td>
+</tr>
+<tr>
+<td><code>rot</code></td>
+<td><code>a b c -- b c a</code></td>
+<td>moves the third to the top</td>
+</tr>
+<tr>
+<td><code>nip</code></td>
+<td><code>a b -- b</code></td>
+<td>discards the second</td>
+</tr>
+<tr>
+<td><code>tuck</code></td>
+<td><code>a b -- b a b</code></td>
+<td>copies the top under the second</td>
+</tr>
+<tr>
+<td><code>2dup</code></td>
+<td><code>a b -- a b a b</code></td>
+<td>copies the top two</td>
+</tr>
+<tr>
+<td><code>pick</code></td>
+<td><code>... n -- ... x</code></td>
+<td>copies the value n below the top</td>
+</tr>
+<tr>
+<td><code>depth</code></td>
+<td><code>-- n</code></td>
+<td>how many values there are</td>
+</tr>
+<tr>
+<td><code>empty</code></td>
+<td><code>... --</code></td>
+<td>discards everything</td>
+</tr>
+</tbody>
+</table>
+<p><code>0 pick</code> is the same as <code>dup</code> and <code>1 pick</code> is the same as <code>over</code>. <code>pick</code> can reach as deep as the stack goes. It fails when <code>n</code> is too big.</p>
+<pre><code>10 20 30 2 pick         10 20 30 10
+1 2 tuck                2 1 2
+3 4 2dup * rot rot +    12 7
+</code></pre>
+<p>Every stack word moves whole values, so copying a quote, a string or a bignum with <code>dup</code> costs the same as copying a small number. The copies share the same object (<a href="values.html">values and objects</a>).</p>
+<h2 id="juggling-or-locals">Juggling or locals</h2>
+<p>When you need to keep three or more values in play, locals are easier to read than <code>rot</code> and <code>pick</code>:</p>
+<pre><code>[ rot dup * rot dup * + swap dup * + ] :sumsq3
+[ { a b c } a a * b b * + c c * + ] :sumsq3
+</code></pre>
+<p>Both define the sum of three squares. The first uses only the stack, so it is shorter and a little faster when compiled, because the <a href="jit.html">JIT</a> handles <code>dup</code> and <code>*</code> directly while locals go through the interpreter. The second is easier to read. It is common to mix them: use the stack for values that are used up at once, and locals for values you use more than once.</p>
+<h2 id="whole-stack-operations">Whole-stack operations</h2>
+<p><code>depth list</code> packs the whole stack into one list, and <code>spread</code> unpacks a list onto the stack. Together they let you save and restore the stack:</p>
+<pre><code>depth list { saved }
+... code that makes a mess ...
+empty saved spread
+</code></pre>
+<p>After <code>depth list</code> the stack is empty, so the code in the middle starts from nothing, and <code>empty saved spread</code> puts the old values back, whatever the code left. <code>learn</code> runs every exercise this way. To keep the values on the stack and also save a copy, put them straight back with <code>depth list dup spread</code> (<a href="catching.html">catching</a>).</p>
+<p>To print the stack without changing it:</p>
+<pre><code>depth list dup . spread
+</code></pre>
+<p>The <a href="prompt.html">prompt</a> already shows the stack in front of each <code>»</code>, cut on the left when it is long.</p>
+<h2 id="printing-values">Printing values</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Pops</th>
+<th>Prints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.</code></td>
+<td>one value</td>
+<td>the value as source, then a newline: strings in quotes, symbols with <code>&#x27;</code></td>
+</tr>
+<tr>
+<td><code>say</code></td>
+<td>one value</td>
+<td>the value as text, then a newline: strings without quotes</td>
+</tr>
+<tr>
+<td><code>write</code></td>
+<td>one value</td>
+<td>as text, without a newline</td>
+</tr>
+</tbody>
+</table>
+<p><code>.</code> is for looking at values, and <code>say</code> is for output that people read. <code>&quot;hi&quot; .</code> prints <code>&quot;hi&quot;</code>, and <code>&quot;hi&quot; say</code> prints <code>hi</code>.</p>
+<h2 id="errors">Errors</h2>
+<p>A word that finds too few values fails, and the message names the word. A word that finds the wrong kind of value fails in the same way. Either way the whole line is undone (<a href="transactions.html">transactions</a>), so the stack is as it was before the line.</p>
+<p>If you push a 1025th value, the line fails because the stack is full. This almost always means a loop that pushes on every round without taking anything off, such as <code>2000 [ 1 ] times</code>.</p>
+<h2 id="the-stack-and-the-world">The stack and the world</h2>
+<p>The stack is part of the <a href="world.html">world</a> of the tab. It is saved on installed disks, restored by <a href="back.html">back</a> and <code>redo</code>, and kept separate in each <a href="tabs.html">tab</a>. Values that cannot be written as source code do not survive a reboot (<a href="saving.html">saving</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

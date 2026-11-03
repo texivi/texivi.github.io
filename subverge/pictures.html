@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pictures - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="pictures">Pictures</h1>
+<p>Subverge can draw full-colour pictures on the <a href="screen.html">graphics screen</a>. There are two parts: &quot;bitmaps&quot;, which are grids of pixels that a program fills in and draws, and the pictures built into the system, which are turned into bitmaps. <code>gallery</code> shows the built-in pictures, and <code>credits</code> shows four of them next to the <a href="credits.html">credits</a>.</p>
+<p>Pictures need graphics mode, which needs the default <code>-vga std</code> display of QEMU. See <a href="screen.html">screen</a>.</p>
+<h2 id="the-gallery">The gallery</h2>
+<pre><code>gallery
+</code></pre>
+<p>draws the pictures one at a time, each at it is own size on the 640 by 480 screen. The first are photographs and drawings, and the ones after them are screenshots of Subverge, each 640 by 480. The right and down arrows, Space and <code>n</code> go to the next one, the left and up arrows and <code>p</code> to the one before, and <code>q</code>, Esc or Ctrl-C leave. The name and the position are printed at the bottom. Decoding takes a moment, so a picture appears shortly after the key. <code>pictures</code> lists the names:</p>
+<pre><code>pictures
+</code></pre>
+<p>Every picture is a JPEG that was scaled to fit in 640 by 480 when the system was built, and the kernel decodes it with it&#x27;s own decoder. Colours are kept as 24-bit values, so a photograph is shown as it is and is not reduced to a palette.</p>
+<h2 id="bitmaps">Bitmaps</h2>
+<p>A bitmap is a width, a height and one colour per pixel, kept by the kernel and named by a number from 0 to 15. A colour is one number, <code>0xRRGGBB</code>, with each part from 0 to 255. <code>pack-rgb</code> builds one from its parts.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bitmap</code></td>
+<td><code>w h -- id</code>, a new black bitmap</td>
+</tr>
+<tr>
+<td><code>bmp-set</code></td>
+<td><code>id x y rgb --</code>, sets a pixel</td>
+</tr>
+<tr>
+<td><code>bmp-get</code></td>
+<td><code>id x y -- rgb</code>, reads a pixel</td>
+</tr>
+<tr>
+<td><code>bmp-fill</code></td>
+<td><code>id rgb --</code>, fills the whole bitmap</td>
+</tr>
+<tr>
+<td><code>bmp-box</code></td>
+<td><code>id x y w h rgb --</code>, fills a rectangle</td>
+</tr>
+<tr>
+<td><code>bmp-size</code></td>
+<td><code>id -- w h</code></td>
+</tr>
+<tr>
+<td><code>bmp-show</code></td>
+<td><code>id x y --</code>, draws the bitmap with its top-left corner at x, y</td>
+</tr>
+<tr>
+<td><code>bmp-free</code></td>
+<td><code>id --</code>, gives the bitmap back</td>
+</tr>
+<tr>
+<td><code>pack-rgb</code></td>
+<td><code>r g b -- n</code></td>
+</tr>
+<tr>
+<td><code>picture</code></td>
+<td><code>name -- id</code>, decodes a built-in picture into a new bitmap</td>
+</tr>
+<tr>
+<td><code>pictures</code></td>
+<td><code>-- list</code>, the names of the built-in pictures</td>
+</tr>
+</tbody>
+</table>
+<p>A bitmap is at most 2048 by 2048. There is room for 16 bitmaps at a time, shared by all four tabs, and a bitmap stays until <code>bmp-free</code> is run on it. Pixels outside a bitmap are ignored by <code>bmp-set</code> and read as 0 by <code>bmp-get</code>. <code>bmp-show</code> cuts off whatever falls outside the screen, and fails when graphics mode is off. first<code>when</code>gfx` is not running.</p>
+<h2 id="drawing">Drawing</h2>
+<pre><code>gfx
+200 100 bitmap { b }
+b 0x102030 bmp-fill
+b 10 10 180 80 0xFFC040 bmp-box
+b 50 50 100 pack-rgb -&gt;c
+b 100 50 c bmp-set
+b 20 20 bmp-show
+key drop gfx-off
+</code></pre>
+<p>Locals such as <code>b</code> last for one line, so a longer program is a word, and a bitmap number can be kept in a definition. A bitmap is drawn in one step, so changing it and drawing it again with <code>bmp-show</code> is the way to animate:</p>
+<pre><code>[ gfx 64 64 bitmap { b }
+  0 64 [ { y } 0 64 [ { x } b x y x 4 * y 4 * 128 pack-rgb bmp-set ] for ] for
+  b 288 208 bmp-show
+  key drop b bmp-free gfx-off
+] :gradient
+</code></pre>
+<h2 id="the-built-in-pictures">The built-in pictures</h2>
+<p><code>picture</code> takes one of the names from <code>pictures</code>.</p>
+<p>The photographs and the people who made them are in <a href="credits.html">credits</a>. The three drawn ones were made with a small generator and are not photographs.</p>
+<pre><code>gfx &quot;tulip-rows&quot; picture { b } b 0 106 bmp-show key drop b bmp-free gfx-off
+</code></pre>
+<p>Decoding allocates the bitmap, and its memory comes back with <code>bmp-free</code>. A picture that is not baseline JPEG is refused, which only matters for pictures added to the source tree in <code>art/</code>.</p>
+<h2 id="adding-a-picture">Adding a picture</h2>
+<p>Put a baseline JPEG in <code>art/</code> in the source tree, no larger than 2048 by 2048, and rebuild. The file name without <code>.jpg</code> is the name for <code>picture</code>. A 4:2:0 or 4:4:4 JPEG without progressive coding works, and ImageMagick makes one with <code>-interlace none</code>. Every picture adds its size to the kernel, and an installed disk keeps the kernel in 2 MiB, so a few hundred kilobytes each is the budget.</p>
+<p>See <a href="screen.html">screen</a> for the other graphics words, <a href="apps.html">apps</a> for the programs and <a href="errors.html">errors</a> if a line fails.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

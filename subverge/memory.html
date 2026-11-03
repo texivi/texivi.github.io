@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="memory">Memory</h1>
+<p>These words read and write the memory of the machine directly, and <code>alloc</code> gives you raw blocks of memory. The values that omega makes itself, such as strings and quotes, live in the same memory, but the <a href="gc.html">garbage collector</a> looks after them, so you never free them by hand.</p>
+<h2 id="the-address-space">The address space</h2>
+<p>The kernel, all four <a href="tabs.html">tabs</a>, all omega values and whatever you <code>alloc</code> share one address space. At boot the kernel identity-maps the first 4 GiB with 2 MiB pages, so every address below 4 GiB is the physical address of the same number. Everything runs in ring 0, in that one fixed map, without user space or memory protection.</p>
+<p>Roughly, from the bottom:</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x0</code></td>
+<td>the real-mode interrupt vector table and BIOS data, left over from boot</td>
+</tr>
+<tr>
+<td><code>0xB8000</code></td>
+<td>VGA text memory, the actual screen</td>
+</tr>
+<tr>
+<td><code>0x100000</code></td>
+<td>the kernel, loaded at 1 MiB</td>
+</tr>
+<tr>
+<td>the first base address register of the display card</td>
+<td>the framebuffer of graphics mode, below 4 GiB</td>
+</tr>
+<tr>
+<td>after the kernel</td>
+<td>the kernel heap, up to 64 MiB</td>
+</tr>
+<tr>
+<td>the rest</td>
+<td>free RAM, and above it, devices</td>
+</tr>
+</tbody>
+</table>
+<p><code>memmap</code> gives you the real map the bootloader passed in, as <code>[ base length type ]</code> entries, and <code>memls</code> prints it as a table. <code>kernel</code> gives the kernel image size and total RAM.</p>
+<h2 id="the-heap">The heap</h2>
+<p>The kernel heap starts right after the kernel and runs for 64 MiB, or less on machines with less RAM. It is a single first-fit free list: blocks have a small header, are rounded up to 16 bytes, and neighbouring free blocks are merged when the allocator walks past them. Interrupts are disabled while it works, because all four tabs share it.</p>
+<p>Everything allocates from it: omega objects, task stacks, the editor&#x27;s buffers, the installer&#x27;s copy of the kernel, and your <code>alloc</code>s. <code>heap</code> gives you bytes in use and the total. If the kernel itself runs out, that is a panic and the machine stops. If an omega word runs out, it fails.</p>
+<h2 id="the-words">The words</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>peek</code></td>
+<td><code>addr -- n</code></td>
+<td>read a byte</td>
+</tr>
+<tr>
+<td><code>peekd</code></td>
+<td><code>addr -- n</code></td>
+<td>read 4 bytes</td>
+</tr>
+<tr>
+<td><code>peekq</code></td>
+<td><code>addr -- n</code></td>
+<td>read 8 bytes</td>
+</tr>
+<tr>
+<td><code>poke</code></td>
+<td><code>n addr --</code></td>
+<td>write a byte</td>
+</tr>
+<tr>
+<td><code>poked</code></td>
+<td><code>n addr --</code></td>
+<td>write 4 bytes</td>
+</tr>
+<tr>
+<td><code>pokeq</code></td>
+<td><code>n addr --</code></td>
+<td>write 8 bytes</td>
+</tr>
+<tr>
+<td><code>alloc</code></td>
+<td><code>n -- addr</code></td>
+<td>zeroed memory, 1 byte to 16 MiB</td>
+</tr>
+<tr>
+<td><code>free</code></td>
+<td><code>addr --</code></td>
+<td>give it back</td>
+</tr>
+<tr>
+<td><code>heap</code></td>
+<td><code>-- used total</code></td>
+<td>heap usage</td>
+</tr>
+</tbody>
+</table>
+<p>Reads and writes are little-endian, unaligned addresses work, and nothing is checked. <code>peek</code> on an address with nothing behind it gives you whatever the bus gives back. <code>poke</code> on the kernel&#x27;s own code succeeds and takes effect the next time that code runs.</p>
+<h2 id="what-poke-does-not-do">What poke does not do</h2>
+<p>It does not take part in <a href="transactions.html">transactions</a>. A line that pokes and then fails has still poked. <a href="back.html">back</a> cannot unpoke. And on an installed disk, nothing you poked is <a href="saving.html">saved</a>, because only worlds and root are.</p>
+<p><code>alloc</code> behaves the same way. A line that allocates and then fails keeps the allocation, and the collector does not track raw memory, so it has to be freed explicitly. <code>life</code> is an example: it allocates two boards at start and frees both on exit.</p>
+<h2 id="poking-the-screen">Poking the screen</h2>
+<p>The screen is the safest place to experiment, since mistakes there are only visual:</p>
+<pre><code>65 0xB8000 poke
+</code></pre>
+<p>puts an <code>A</code> in the top-left corner of the physical screen. Every character takes two bytes there, the character and then it is colour, so</p>
+<pre><code>0x4E 0xB8001 poke
+</code></pre>
+<p>turns that <code>A</code> yellow on red. It does not last, because the text screen gets redrawn over it. To draw properly, use the <a href="screen.html">screen</a> words, which write into the tab&#x27;s own buffer instead.</p>
+<h2 id="other-memory">Other memory</h2>
+<p>Writes to the low megabyte, the kernel image or the page tables (<a href="boot.html">boot</a>) usually end in a fault or a hang. A CPU fault in a tab only restarts that tab, but corrupting a kernel structure usually means restarting QEMU.</p>
+<p><code>hexview</code> (<a href="tools.html">tools</a>) is a hex editor built on these words, and it writes as you type.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

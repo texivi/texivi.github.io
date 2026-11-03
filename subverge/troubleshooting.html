@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<p>This page lists problems you may run into and says what to do about each one.</p>
+<h2 id="using-it">Using it</h2>
+<p><strong>The mouse does not move.</strong> A click inside the QEMU window gives it the pointer and Ctrl-Alt-G takes it back. <code>mouse?</code> is 0 when no PS/2 mouse was found (<a href="ps2.html">ps2</a>). Every mouse action has a key (<a href="keys.html">keys</a>).</p>
+<p><strong><code>gfx</code> says there is no Bochs display.</strong> The display is not the standard VGA card of QEMU. Start QEMU with <code>-vga std</code> (<a href="screen.html">screen</a>).</p>
+<p><strong>The clock is wrong.</strong> The tab bar shows the CMOS clock, and QEMU sets that clock to UTC by default. <code>-rtc base=localtime</code> on the QEMU command line shows local time.</p>
+<p><strong>No drives are found.</strong> The disk is attached as virtio or NVMe, and Subverge has only an IDE driver. Attach it with <code>-hda</code>.</p>
+<p><strong>Nothing is saved.</strong> The system is the live ISO, which keeps everything in memory. <code>sys</code> shows which system is running. <code>install</code> keeps the work.</p>
+<p><strong>A whole line did nothing.</strong> A word on the line failed, so the line was undone, including the parts that ran before the failure. The red text names the word and the reason (<a href="transactions.html">transactions</a>).</p>
+<p><strong><code>back</code> went further than expected.</strong> <code>back</code> counts only lines that changed something. A line that only printed, such as <code>help</code>, is skipped, and <code>back</code> goes to the line before it (<a href="back.html">back</a>).</p>
+<p><strong>A word works at the prompt but not inside another word.</strong> Locals are dynamically scoped. A local of the calling word can hide a word with the same name, or the called word can read a local that was not meant to be passed. Renaming one of them fixes both cases (<a href="names.html">names</a>).</p>
+<p><strong><code>forget</code> says the name is not defined in this tab.</strong> <code>forget</code> removes only definitions made in the current tab. A word defined in root is changed in root with <code>&#x27;name open</code> (<a href="names.html">names</a>).</p>
+<p><strong>A root edit had no effect.</strong> The edit did not build, so root stayed as it was and the edit was kept as a draft. <code>root</code> marks the unit <code>(draft)</code>. <code>&#x27;name open</code> shows the error (<a href="root.html">root</a>).</p>
+<p><strong><code>edit</code> on <code>top</code> changed nothing in the other tabs.</strong> <code>edit</code> redefines a word in the current tab only, as a private copy that hides the root version. <code>&#x27;top open</code> changes root for every tab and <code>&#x27;top forget</code> drops the private copy (<a href="scrawl.html">scrawl</a>).</p>
+<p><strong>A program is missing from <code>apps</code>.</strong> <code>apps</code> prints a fixed list. <code>&#x27;apps open</code> adds a program to it (<a href="apps.html">apps</a>).</p>
+<p><strong>The colours are unreadable.</strong> <code>&#x27;dusk theme</code> switches back, and <code>themes</code> lists the others (<a href="themes.html">themes</a>). In <code>amber</code>, <code>phosphor</code> and <code>haelide</code> every colour is a shade of one hue, so programs that rely on colour are harder to read.</p>
+<p><strong><code>rgb</code> colours are gone after a reboot.</strong> <code>rgb</code> changes the palette until the next theme switch or reboot and is not saved. <code>rgb</code> lines in <code>startup</code> apply at every boot (<a href="themes.html">themes</a>).</p>
+<p><strong>The theme resets at every boot.</strong> The live ISO always starts with <code>dusk</code>. An installed system keeps the theme.</p>
+<p><strong><code>sys</code> shows the cat after a logo was picked.</strong> Either the theme changed and the logo carried the name of the old theme, or the logo was defined in another tab. <code>sys</code> runs in tab 1 at boot, so the logo belongs in a root unit (<a href="logos.html">logos</a>).</p>
+<p><strong>Tab does nothing at the prompt.</strong> Nothing matches the name before the cursor, or the cursor is right after a space (<a href="prompt.html">prompt</a>).</p>
+<p><strong><code>redo</code> has nothing to redo.</strong> A line changed the world after the <code>back</code>, which clears the redo list (<a href="back.html">back</a>).</p>
+<p><strong>Ctrl-C does not stop the code.</strong> The code is in a place that does not check for Ctrl-C, such as a long built-in. F1 to F4 switch to another tab, which keeps working (<a href="tabs.html">tabs</a>).</p>
+<p><strong>Everything froze.</strong> Something overwrote memory that the kernel uses, a port write hung the machine, or <code>halt</code> ran. Closing QEMU and starting it again recovers. An installed disk has saved every line up to the last one that succeeded.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardinals - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="cardinals">Cardinals</h1>
+<p>A &quot;cardinal&quot; is a number that tells you how big a set is. An <a href="ordinals.html">ordinal</a> tells you where something is in an ordering, and a cardinal tells you how many things there are. omega keeps cardinals as their own type, seperate from ordinals and from ordinary numbers.</p>
+<h2 id="what-they-are">What they are</h2>
+<p>Two sets have the same size when their members can be paired off one to one. Pair each natural number n with the even number 2n and every member of both sets gets exactly one partner, so there are as many even numbers as natural numbers. That size is ℵ₀, and omega agrees:</p>
+<pre><code>aleph0 aleph0 + .       ℵ₀
+aleph0 aleph0 * .       ℵ₀
+</code></pre>
+<p>Positions and sizes split apart here. ω, ω+1 and ω·2 are different places in the line, but each one has only countably many places before it, so all three have size ℵ₀:</p>
+<pre><code>omega 2 * card .        ℵ₀
+</code></pre>
+<p>Some sets are bigger. Cantor&#x27;s diagonal argument shows that the subsets of the natural numbers cannot be paired off with the natural numbers, so 2^ℵ₀, the <code>continuum</code>, is larger than ℵ₀. <code>diagonal</code> runs the argument on screen (<a href="demos.html">demos</a>). ℵ₁ is the next size after ℵ₀, and whether it equals the continuum is the continuum hypothesis, which omega refuses to answer (see below).</p>
+<p>The pages <a href="aleph-null.html">aleph-null</a>, <a href="countable-sets.html">countable-sets</a>, <a href="hilbert-hotel.html">hilbert-hotel</a> and <a href="uncountable-sets.html">uncountable-sets</a> go through the same ideas in more detail. Vsauce&#x27;s <a href="https://www.youtube.com/watch?v=SrU9YDoXE88">How To Count Past Infinity</a> explains all of this with pictures.</p>
+<h2 id="literals">Literals</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Value</th>
+<th>Printed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aleph0</code></td>
+<td>the size of the natural numbers</td>
+<td><code>ℵ₀</code></td>
+</tr>
+<tr>
+<td><code>aleph1</code></td>
+<td>the next infinite size</td>
+<td><code>ℵ₁</code></td>
+</tr>
+<tr>
+<td><code>n aleph</code></td>
+<td>the n-th infinite size</td>
+<td><code>ℵₙ</code></td>
+</tr>
+<tr>
+<td><code>continuum</code></td>
+<td>the size of the real numbers, 2^ℵ₀</td>
+<td><code>2^ℵ₀</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code>3 aleph .               ℵ₃
+12 aleph .              ℵ_12
+</code></pre>
+<p><code>aleph</code> takes any non-negative 64-bit number. Above 9 the index is printed after an underscore, since the font has subscript digits only up to 9. The index has to be a finite number, so ℵ_ω and the alephs above it cannot be written in omega, even though set theory has them.</p>
+<p>The other values omega can represent are powers of two: <code>2 n aleph ^</code> is 2^ℵₙ.</p>
+<h2 id="addition-and-multiplication">Addition and multiplication</h2>
+<p>For infinite cardinals, sums and products are the larger of the two:</p>
+<pre><code>aleph0 aleph0 + .       ℵ₀
+aleph0 aleph0 * .       ℵ₀
+3 aleph0 + .            ℵ₀
+aleph0 aleph1 + .       ℵ₁
+aleph0 continuum * .    2^ℵ₀
+0 aleph1 * .            0
+</code></pre>
+<p>Adding a finite number to an infinite cardinal does not change it, and multiplying by <code>0</code> gives <code>0</code>. When the larger of the two cannot be determined in set theory, the operation fails with the ZFC error described below: <code>aleph2 continuum +</code> is either ℵ₂ or 2^ℵ₀, and ZFC cannot say which.</p>
+<h2 id="powers">Powers</h2>
+<p>Only these powers are supported:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>n aleph_k ^</code>, with n ≥ 2 finite</td>
+<td>2^ℵₖ</td>
+</tr>
+<tr>
+<td><code>aleph_k n ^</code>, with n ≥ 1 finite</td>
+<td>ℵₖ</td>
+</tr>
+</tbody>
+</table>
+<pre><code>2 aleph0 ^ .            2^ℵ₀
+10 aleph0 ^ .           2^ℵ₀
+aleph0 3 ^ .            ℵ₀
+2 aleph0 ^ continuum = .    1
+</code></pre>
+<p>Every finite base from 2 up gives the same power, since nᵏ and 2ᵏ have the same size for infinite k. A cardinal raised to a finite power is itself.</p>
+<p>Everything else, such as <code>aleph0 aleph0 ^</code>, fails with an error. Several of these have answers in ZFC (ℵ₀^ℵ₀ is 2^ℵ₀), but omega only implements the two rules above.</p>
+<h2 id="comparison">Comparison</h2>
+<pre><code>aleph0 aleph1 &lt; .               1
+aleph0 continuum &lt; .            1
+aleph1 continuum &lt;= .           1
+2 aleph0 ^ 2 aleph1 ^ &lt;= .      1
+</code></pre>
+<p>Comparisons follow what ZFC can prove:</p>
+<ul>
+<li>ℵⱼ &lt; ℵₖ exactly when j &lt; k.</li>
+<li>ℵₖ &lt; 2^ℵₖ always, by Cantor&#x27;s theorem. The <code>diagonal</code> demo shows the proof (<a href="demos.html">demos</a>).</li>
+<li>ℵₖ₊₁ ≤ 2^ℵₖ always, but whether they are equal is undecidable.</li>
+<li>2^ℵⱼ ≤ 2^ℵₖ for j &lt; k, but whether the inequality is strict is undecidable.</li>
+<li>ℵⱼ compared with 2^ℵₖ for j &gt; k+1 is undecidable either way.</li>
+</ul>
+<p>Every finite number is smaller than every infinite cardinal.</p>
+<h2 id="the-continuum-hypothesis">The continuum hypothesis</h2>
+<p>The continuum hypothesis says that no size lies strictly between the natural numbers and the real numbers, that is, <code>aleph1</code> equals <code>continuum</code>.</p>
+<pre><code>aleph1 continuum =
+</code></pre>
+<p>fails with</p>
+<pre><code>ZFC can&#x27;t decide this one (continuum hypothesis, Godel 1940 and Cohen 1963)
+</code></pre>
+<p>The hypothesis is independent of ZFC: Gödel showed in 1940 that ZFC cannot disprove it, and Cohen showed in 1963 that ZFC cannot prove it. omega does not assume an answer. A comparison whose result depends on it, or on the generalised hypothesis for higher alephs, fails with the same message, and since failing fails the line, nothing a program computes ever rests on an assumption it did not make.</p>
+<p>Comparisons that come out the same either way still work. <code>aleph1 continuum &lt;=</code> is <code>1</code>, and so is <code>aleph1 continuum &gt; not</code>.</p>
+<h2 id="ordinals-and-cardinals">Ordinals and cardinals</h2>
+<p>Ordinals and cardinals cannot be mixed directly:</p>
+<pre><code>omega aleph0 +          can&#x27;t mix cardinals with that
+</code></pre>
+<p>Convert an ordinal with <code>card</code> first:</p>
+<pre><code>omega 2 * card .        ℵ₀
+epsilon0 card .         ℵ₀
+omega1 card .           ℵ₁
+</code></pre>
+<p>Finite numbers work with both types.</p>
+<p>Subtraction and division fail with <code>cardinals only support + * and ^</code>.</p>
+<h2 id="saving">Saving</h2>
+<p>Cardinals are saved as source, <code>0 aleph</code> for ℵ₀ and <code>2 0 aleph ^</code> for 2^ℵ₀, and read back exactly (<a href="saving.html">saving</a>).</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

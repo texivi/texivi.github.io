@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="flow">Flow</h1>
+<p>Conditions and loops are ordinary words that take <a href="quotes.html">quotes</a>. Nothing about them is built into the syntax, so they can be passed around, wrapped and replaced like any other word.</p>
+<h2 id="choices">Choices</h2>
+<pre><code>cond [ then ] [ else ] if
+cond [ then ] when
+cond [ then ] unless
+</code></pre>
+<p><code>if</code> runs one of two quotes. <code>when</code> runs its quote only if the condition is true, and <code>unless</code> only if it is false. The condition is a number: <code>0</code> is false and anything else is true, including every bignum. Comparisons leave <code>1</code> or <code>0</code> (<a href="numbers.html">numbers</a>).</p>
+<pre><code>x 0 &lt; [ &quot;negative&quot; ] [ &quot;not negative&quot; ] if say
+n 100 &gt; [ &quot;big&quot; say ] when
+&#x27;startup defined? [ startup ] [ sys ] if
+</code></pre>
+<p>A branch that is not a quote is pushed instead of run, so short choices between values need no brackets:</p>
+<pre><code>x 0 &lt; &quot;negative&quot; &quot;not negative&quot; if say
+</code></pre>
+<p>Nothing checks that both branches of an <code>if</code> leave the same number of values. If they do not, the problem shows up later, as a stack error in whatever comes next.</p>
+<p>Chains of choices nest:</p>
+<pre><code>[ { n }
+  n 0 &lt; [ &quot;negative&quot; ] [
+  n 0 = [ &quot;zero&quot; ] [ &quot;positive&quot; ] if ] if
+] :sign
+</code></pre>
+<h2 id="loops">Loops</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Effect</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>times</code></td>
+<td><code>n q --</code></td>
+<td>runs q n times</td>
+</tr>
+<tr>
+<td><code>for</code></td>
+<td><code>a b q --</code></td>
+<td>runs q with each i from a to b-1 pushed</td>
+</tr>
+<tr>
+<td><code>while</code></td>
+<td><code>test body --</code></td>
+<td>runs body as long as test leaves a true value</td>
+</tr>
+<tr>
+<td><code>do</code></td>
+<td><code>q --</code></td>
+<td>runs q once</td>
+</tr>
+</tbody>
+</table>
+<pre><code>3 [ &quot;hi&quot; say ] times            hi, three times
+0 5 [ . ] for                   0 1 2 3 4
+5 [ dup 0 &gt; ] [ dup . 1 - ] while drop      5 4 3 2 1
+</code></pre>
+<p><code>times</code> and <code>for</code> take 64-bit integers. A count of zero or less runs nothing, and <code>for</code> with <code>b</code> not above <code>a</code> runs nothing. <code>for</code> pushes the counter before each run and expects the quote to use it up. A quote that leaves it puts one more value on the stack every time.</p>
+<p><code>while</code> runs the test, takes the value it leaves, and runs the body if it is true. The test must be a quote: <code>x 3 &lt; [ ... ] while</code> works out <code>x 3 &lt;</code> once, before the loop starts, and gives a number as the test. That number is pushed every round and never changes. If the test leaves nothing, the loop fails.</p>
+<p>Locals bound inside the test are gone by the time the body runs, because the locals of a quote end with it. Keep the state of a loop in locals that you bind outside the loop, and update them with <code>-&gt;</code>:</p>
+<pre><code>0 { i }
+[ i 10 &lt; ] [ i . i 1 + -&gt;i ] while
+</code></pre>
+<h2 id="leaving-a-loop-early">Leaving a loop early</h2>
+<p>Loops end through their condition. To stop a <code>times</code> or <code>for</code> early, write it as a <code>while</code> with a flag, which is how every bundled program runs its main loop:</p>
+<pre><code>1 { going }
+[ going ] [
+  key quit-key? [ 0 -&gt;going ] when
+] while
+</code></pre>
+<p>A word that fails also ends every loop at once, and the line with it, unless the loop is inside <code>try</code> (<a href="catching.html">catching</a>).</p>
+<h2 id="walking-lists">Walking lists</h2>
+<pre><code>l [ f ] each          runs f on every item
+l [ f ] map           collects f&#x27;s result for every item
+l [ f ] filter        keeps the items f approves
+</code></pre>
+<p>These are described with the other list words in <a href="quotes.html">quotes</a>. On a string, <code>each</code> goes through the bytes.</p>
+<h2 id="running-code-from-data">Running code from data</h2>
+<p><code>do</code> runs a quote held in a value:</p>
+<pre><code>[ 2 * ] { double }
+21 double do .                  42
+</code></pre>
+<p>A local that holds a quote is pushed, not run, when its name appears, which is why <code>do</code> is needed here. A definition that holds a quote is run when its name appears.</p>
+<p><code>eval</code> parses a string and runs it:</p>
+<pre><code>&quot;1 2 +&quot; eval .                  3
+</code></pre>
+<h2 id="stopping">Stopping</h2>
+<p>Ctrl-C interrupts any code that is running. The interpreter checks for it before every step, and <code>times</code>, <code>for</code>, <code>while</code>, <code>each</code>, <code>map</code> and <code>filter</code> check between rounds, so even a loop whose body is a single built-in word stops quickly. The line fails and is undone.</p>
+<p><code>sleep</code>, <code>beep</code>, <code>key</code> and <code>waitkey</code> wait without using the processor, and they also answer Ctrl-C.</p>
+<h2 id="tracing">Tracing</h2>
+<pre><code>[ 1 2 + 4 * ] trace
+</code></pre>
+<p><code>trace</code> runs a quote one step at a time. Before each step it prints the top of the stack and the item that is about to run, then waits for a key: Space takes one step, <code>c</code> runs the rest at full speed, and <code>q</code>, Escape or Ctrl-C stops with the error <code>stopped</code>. Words that the quote calls are traced too, so tracing a call into a large word steps through all of it.</p>
+<p>Code that is being traced is never compiled, because compiled code cannot stop between items.</p>
+<p><code>timeit</code>, <code>bench</code> and <code>watch</code> time and repeat quotes (<a href="tools.html">tools</a>).</p>
+<h2 id="recursion">Recursion</h2>
+<p>A word can call itself:</p>
+<pre><code>[ { n } n 2 &lt; [ n ] [ n 1 - fib n 2 - fib + ] if ] :fib
+20 fib .                        6765
+</code></pre>
+<p>Every call nests, including calls in the last position of a quote, and nesting stops at 400 quotes with an error. Interpreted, each level of <code>fib</code> runs two quotes, its own body and a branch of <code>if</code>, so it reaches about 200 levels; compiled, the branch is inlined and only the body counts. Locals add a second limit of 256 live at once, which ends <code>fib</code> with <code>too many local names</code> before 400. Recursion suits trees and divide-and-conquer, whose depth grows slowly; long linear processes belong in a loop.</p>
+<h2 id="speed">Speed</h2>
+<p>The <a href="jit.html">JIT</a> compiles <code>if</code>, <code>when</code>, <code>unless</code>, <code>times</code>, <code>for</code> and <code>while</code> into jumps when their quotes are written right in front of them and contain no locals or definitions:</p>
+<pre><code>0 1000000 [ 1 + ] times         compiled into a loop
+[ 1 + ] { body } 0 1000000 body times     calls the body each round
+</code></pre>
+<p>The second form still works, but every round goes through a call. For loops that run many times, keep the quotes literal and the values on the stack.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

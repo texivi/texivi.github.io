@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome to Subverge - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="welcome-to-subverge">Welcome to Subverge</h1>
+<p>Subverge is an x86-64 operating system for programming and experiments. It is not Linux. Everything runs in ring 0, the shell is a programming language, and the programs that come with it are written in that language and can be changed while the system runs. The kernel is called <strong>ordinal</strong> and the shell is called <strong>omega</strong>.</p>
+<p>These pages and <code>learn</code> assume that you already program. They do not explain loops or variables. If you know Forth, begin with <a href="forth.html">omega for Forth programmers</a>.</p>
+<h2 id="the-machine">The machine</h2>
+<p>Subverge runs in QEMU and has been tested only there. It boots from an ISO into an 80 by 25 text screen with four tabs. A PS/2 mouse works on that screen, and <code>gfx</code> starts a 640 by 480 graphics mode on the standard VGA display of QEMU (<a href="screen.html">screen</a>). <code>docs</code> opens these pages inside the system (<a href="help.html">help</a>).</p>
+<p>A live ISO saves nothing. <code>install</code> on a blank attached disk image keeps the work. An installed disk holds no files. It has fixed slots for the root units, the saved world of each shell and the boot code (<a href="disk-layout.html">disk layout</a>), and it writes them after every line that succeeds (<a href="saving.html">saving</a>).</p>
+<h2 id="the-language">The language</h2>
+<p>The prompt runs <a href="omega.html">omega</a>, a postfix language related to Forth. The shell is also the compiler: a line is parsed and run, and compiled to x86-64 machine code the second time it runs (<a href="jit.html">JIT</a>). Programs and commands are written in the same language, so a command that is used often becomes a word with <code>[ ... ] :name</code>.</p>
+<pre><code>2 3 +
+[ dup * ] :sq
+7 sq
+</code></pre>
+<p>Every line is a transaction. When a word on the line fails, the whole line is undone, and <a href="back.html">back</a> undoes up to 64 lines that succeeded (<a href="transactions.html">transactions</a>). Raw writes to memory and I/O ports are outside this and cannot be undone.</p>
+<p>Integers do not wrap. A result that does not fit in 64 bits becomes a bignum of up to 2^65536 (<a href="numbers.html">numbers</a>, <a href="bignums.html">bignums</a>). Infinity is a value as well: <code>omega 1 +</code> is a valid line and gives <code>ω+1</code> (<a href="ordinals.html">ordinals</a>, <a href="cardinals.html">cardinals</a>).</p>
+<h2 id="ring-0">Ring 0</h2>
+<p><code>peek</code> and <code>poke</code> read and write any address, <code>in</code> and <code>out</code> talk to I/O ports, <code>cpuid</code> and <code>pci</code> read the CPU and the PCI bus, and <code>xray</code> disassembles the code the JIT made (<a href="memory.html">memory</a>, <a href="ports.html">ports</a>, <a href="dis.html">dis</a>). A bad write can stop the whole virtual machine. <a href="expectations.html">expectations</a> covers this.</p>
+<h2 id="four-shells">Four shells</h2>
+<p>Four shells run at the same time under a preemptive <a href="scheduler.html">scheduler</a>. Each has it is own stack, it&#x27;s own definitions and its own screen, and they share only <a href="root.html">root</a>, the heap and the hardware. F1 to F4 switch between them (<a href="tabs.html">tabs</a>).</p>
+<h2 id="what-to-run-first">What to run first</h2>
+<p>The bundled programs cover most of what the system does. A program runs when its name is typed in a shell, and in the page viewer Enter on a link to one runs it at the prompt.</p>
+<ul>
+<li>snake, tiles, pong and life</li>
+<li>mandel, stars, rain and bounce</li>
+<li>count, sorting and the other <a href="demos.html">demos of infinity</a></li>
+<li>calc, clock, stopwatch, todo and convert</li>
+<li>top, irqmon and hexview, which read the machine</li>
+<li>learn, a guided tour of the language in 47 lessons</li>
+</ul>
+<p>The <a href="demo-index.html">demo index</a> lists every program and what it shows. <a href="tools.html">Tools</a> and <a href="games.html">games</a> describe them one by one.</p>
+<h2 id="reading-on">Reading on</h2>
+<p><a href="first-steps.html">first steps</a> is a short session at the prompt, and the <a href="tour.html">tour</a> types the same lines. The <a href="keys.html">key map</a> lists every key, <a href="cmdline.html">command line</a> describes the prompt and <a href="tips.html">tips</a> collects details worth knowing. <a href="design.html">design</a> and <a href="decisions.html">decisions</a> give the reasons behind the system. The <a href="words.html">index of words</a> has a page for each word, and <a href="help.html">help</a> describes how the pages are organised.</p>
+<p><a href="tour.html">Take the tour</a></p>
+<p>Subverge is released under the GPL v3.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

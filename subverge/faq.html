@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="faq">FAQ</h1>
+<h2 id="general">General</h2>
+<h3 id="is-subverge-a-linux-distribution">Is Subverge a Linux distribution?</h3>
+<p>No. The kernel, ordinal, was written for Subverge, and so were the bootloader, the shell, the editor and every program. Subverge is built on Linux with gcc and nasm, but nothing of Linux is in the ISO except GRUB, which only boots the live system.</p>
+<h3 id="is-it-a-templeos-fork">Is it a TempleOS fork?</h3>
+<p>No. It took two ideas from TempleOS, a shell that is also the compiler and ring 0 for everything, and none of it is code. The language, the kernel and the undo of lines are different. See <a href="history.html">history</a>.</p>
+<h3 id="why-is-it-called-subverge">Why is it called Subverge?</h3>
+<p>The name comes from <em>subvert</em> and <em>diverge</em>. See <a href="history.html">history</a>.</p>
+<h3 id="can-it-be-used-every-day">Can it be used every day?</h3>
+<p>No. It runs in QEMU, has no network and no protection between programs, and a bad <code>poke</code> can take the machine down. See <a href="expectations.html">expectations</a>.</p>
+<h3 id="is-there-a-roadmap">Is there a roadmap?</h3>
+<p>See the <a href="roadmap.html">roadmap</a>.</p>
+<h2 id="running-it">Running it</h2>
+<h3 id="where-are-the-files">Where are the files?</h3>
+<p>Subverge has no files. Definitions are in the <a href="world.html">world</a> of a tab, programs are in <a href="root.html">root</a> and named values such as notes are in <a href="phi.html">phi</a>. An installed disk <a href="saving.html">saves</a> all three.</p>
+<h3 id="why-was-the-work-lost-after-a-reboot">Why was the work lost after a reboot?</h3>
+<p>The live ISO saves nothing. <code>install</code> puts Subverge on a drive, and an installed system saves after every line that succeeds, so at most the line being typed is lost.</p>
+<h3 id="a-new-iso-still-shows-the-old-sys">A new ISO still shows the old sys</h3>
+<p>An installed disk was attached. The live system loads the root and the tabs saved on that disk, and the saved root has the old <code>sys</code>. The kernel and the built-in words are new. <code>install</code> on the same drive replaces the kernel and keeps the work.</p>
+<h2 id="help-pages">Help pages</h2>
+<h3 id="how-are-the-help-pages-read">How are the help pages read?</h3>
+<p><code>docs</code> opens the index and <code>&quot;name&quot; doc</code> opens a page. Tab selects the next link, Enter follows it, Backspace goes back and <code>q</code> or Esc leaves (<a href="docfs.html">where the pages live</a>).</p>
+<h3 id="how-do-the-shells-switch">How do the shells switch?</h3>
+<p>F1 to F4 and Alt-1 to Alt-4 select shell 1 to 4. A click on a tab title in the top bar does the same. Super-Enter, C-x 3 and C-x 2 open windows to show several shells at once (<a href="tabs.html">tabs</a>).</p>
+<h3 id="which-keys-does-the-prompt-use">Which keys does the prompt use?</h3>
+<p>The prompt, the page viewer and the editor share C-a, C-e, C-k, C-y, M-f, C-s and the others. M-x runs a word by name and C-h asks about a key or a word. The <a href="keys.html">key map</a> lists all of them.</p>
+<h3 id="how-is-a-key-changed">How is a key changed?</h3>
+<p><code>bind</code> takes the name of a key and a quote and runs the quote when the key is typed at the prompt, as in <code>&quot;M-j&quot; [ &quot;dup &quot; insert ] bind</code>. A binding is saved with the world of the tab (<a href="keys.html">keys</a>).</p>
+<h3 id="what-is-phi">What is phi?</h3>
+<p>A tree of sets that holds named values such as notes. The tabs share it and an installed disk saves it (<a href="phi.html">phi</a>).</p>
+<h3 id="the-mouse-does-not-move">The mouse does not move.</h3>
+<p>QEMU gives the mouse to the guest after the first click in its window, and Ctrl-Alt-G takes it back. <code>mouse?</code> is 1 when the system found a mouse. Every mouse action has a key as well (<a href="keys.html">keys</a>).</p>
+<h3 id="how-are-the-colours-changed">How are the colours changed?</h3>
+<p><code>themes</code> lists the themes and <code>&#x27;paper theme</code> switches to one. See <a href="themes.html">themes</a>.</p>
+<h2 id="the-system">The system</h2>
+<h3 id="is-it-posix-compliant">Is it POSIX compliant?</h3>
+<p>No. POSIX describes processes, files, file descriptors and system calls, and Subverge has none of them. Programs are omega words, and memory, I/O ports and PCI devices are reached with words such as <code>peek</code>, <code>in</code> and <code>pci@</code>. See <a href="smarties.html">omega for smarties</a>.</p>
+<h3 id="does-it-have-its-own-bootloader">Does it have its own bootloader?</h3>
+<p>Installed disks use the Subverge <a href="boot.html">bootloader</a>. The ISO uses GRUB.</p>
+<h3 id="why-does-everything-run-in-ring-0">Why does everything run in ring 0?</h3>
+<p>Every word at the prompt reads and writes the machine directly, as in TempleOS. Separating programs from the kernel would need user mode, system calls and paging per process, and Subverge omits that layer. <a href="transactions.html">Transactions</a> undo most mistakes. Writes to the hardware are the exception.</p>
+<h3 id="is-it-self-hosting">Is it self-hosting?</h3>
+<p>No. Subverge has no C compiler or assembler, so the kernel is built on Linux. The programs in root are omega source and can be edited and rebuilt inside Subverge (<a href="root.html">root</a>).</p>
+<h3 id="is-it-multi-user">Is it multi-user?</h3>
+<p>No. The user name on the <code>sys</code> screen is a string, and <code>&#x27;user open</code> changes it.</p>
+<h3 id="can-the-colours-be-changed">Can the colours be changed?</h3>
+<p><code>themes</code> lists the themes and <code>&#x27;haelide theme</code> switches to one. <code>n r g b rgb</code> changes one colour and <code>logos</code> lists the logos that <code>sys</code> can draw. See <a href="themes.html">themes</a> and <a href="logos.html">logos</a>.</p>
+<h3 id="why-is-the-screen-so-small">Why is the screen so small?</h3>
+<p>Subverge uses 80 by 25 VGA text mode. The top row holds the tab bar, and a tab shares the screen with others when windows are open. <code>gfx</code> starts a 640 by 480 graphics mode with dots, boxes, text and titled frames. See <a href="screen.html">screen</a>.</p>
+<h3 id="does-it-have-networking-or-sound">Does it have networking or sound?</h3>
+<p>Sound comes from the PC speaker. <code>beep</code> plays a tone with a pitch and a length (<a href="ports.html">ports</a>). Other sound hardware and networking are on the <a href="roadmap.html">roadmap</a>.</p>
+<h2 id="the-language">The language</h2>
+<h3 id="why-is-the-shell-a-programming-language">Why is the shell a programming language?</h3>
+<p>A command and a program are the same thing. A line typed at the prompt can be put in a quote, named and saved as a program. See <a href="omega.html">omega</a>.</p>
+<h3 id="why-is-everything-written-backwards">Why is everything written backwards?</h3>
+<p>omega is postfix, so <code>2 3 +</code> replaces <code>2 + 3</code>. The arguments go on the stack first and the word that uses them comes last. This needs no brackets and no precedence rules. See <a href="stack.html">stack</a>.</p>
+<h3 id="why-are-locals-dynamically-scoped">Why are locals dynamically scoped?</h3>
+<p>A word can read the locals of its caller. This is occasionally useful and occasionally the source of surprising bugs. See <a href="names.html">names</a>.</p>
+<h3 id="how-big-can-a-number-get">How big can a number get?</h3>
+<p>Up to 2^65536, about 19,700 digits. A larger result fails with an error (<a href="bignums.html">bignums</a>). The infinite values <code>omega</code> and <code>aleph0</code> are a different kind of value. They compare above every integer, and they are positions and sizes, not large integers (<a href="ordinals.html">ordinals</a>).</p>
+<h3 id="what-is-omega-the-value">What is omega, the value?</h3>
+<p><code>omega</code> pushes ω, the first position after all the natural numbers, which the shell is named after. Vsauce&#x27;s <a href="https://www.youtube.com/watch?v=SrU9YDoXE88">How To Count Past Infinity</a> covers the background. See <a href="ordinals.html">ordinals</a>.</p>
+<h3 id="why-does-omega-1---fail">Why does omega 1 - fail?</h3>
+<p>Ordinals support only <code>+</code>, <code>*</code> and <code>^</code>. ω has no position directly before it, so ω−1 is not an ordinal. See <a href="ordinals.html">ordinals</a>.</p>
+<h3 id="why-did-a-whole-line-do-nothing">Why did a whole line do nothing?</h3>
+<p>One of its words failed and the line was undone. See <a href="transactions.html">transactions</a> and <a href="errors.html">errors</a>.</p>
+<h3 id="how-is-a-line-undone">How is a line undone?</h3>
+<p><code>back</code> undoes it. See <a href="back.html">back</a>.</p>
+<h3 id="how-is-a-program-stopped">How is a program stopped?</h3>
+<p>Ctrl-C stops the code running in the current tab and undoes the line. A tab that does not respond can be left with F1 to F4 or Alt-1 to Alt-4. The tabs are scheduled seperately, so the others keep working (<a href="tabs.html">tabs</a>).</p>
+<h2 id="the-project">The project</h2>
+<h3 id="what-is-the-license">What is the license?</h3>
+<p><a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL v3</a>.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>

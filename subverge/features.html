@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features - Subverge</title>
+<link rel="icon" href="../images/favicon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../style.css">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+<header>
+<a class="me" href="../index.html">Texivi</a>
+<nav><a href="../index.html#about">About</a><a href="../index.html#projects">Projects</a><a href="../index.html#writing">Writing</a><a href="../index.html#contact">Contact</a></nav>
+</header>
+<main id="main" class="text doc">
+<p class="crumb"><a href="index.html">Subverge</a> / <a href="handbook.html">Handbook</a></p>
+<h1 id="features">Features</h1>
+<ul>
+<li>Shell. The prompt runs <a href="omega.html">omega</a>, a postfix language. Commands and programs are written in the same language, and so are the programs that ship with the system.</li>
+<li>JIT. A quote is compiled to x86-64 machine code the second time it runs, and <code>xray</code> disassembles the result (<a href="jit.html">JIT</a>, <a href="dis.html">dis</a>).</li>
+<li>Transactions. When a word fails, the whole line is undone. <code>back</code> undoes up to 64 lines that succeeded (<a href="transactions.html">transactions</a>, <a href="back.html">back</a>).</li>
+<li>Integers. A result that overflows 64 bits becomes a bignum of up to 2^65536, in interpreted and in compiled code (<a href="bignums.html">bignums</a>).</li>
+<li>Infinity. <code>omega</code> and <code>aleph0</code> are values that add, multiply and compare like other numbers (<a href="ordinals.html">ordinals</a>, <a href="cardinals.html">cardinals</a>, <a href="infinity.html">infinity</a>).</li>
+<li>Ring 0. All code runs in ring 0. <code>peek</code>, <code>poke</code>, <code>in</code>, <code>out</code>, <code>cpuid</code> and <code>pci</code> reach memory, I/O ports and the PCI bus (<a href="smarties.html">smarties</a>).</li>
+<li>Screen. The text screen is 80 by 25. A 640 by 480 graphics mode is available for drawing, with full-colour bitmaps and a JPEG decoder for the built-in pictures (<a href="screen.html">screen</a>, <a href="pictures.html">pictures</a>).</li>
+<li>Mouse. A PS/2 mouse is shown as an inverted cell on the text screen. It switches tabs from the top bar and follows links in the viewer (mouse).</li>
+<li>Help. The kernel contains hyperlinked pages. <code>docs</code> and <code>&quot;name&quot; doc</code> open them in a pager, lines of code on a page can be selected and run, and every word has a page (<a href="help.html">help</a>).</li>
+<li>Tabs. Four shells run under a preemptive scheduler. Each has it is own stack and definitions. F1 to F4 switch between them, and they can be shown side by side in windows (<a href="tabs.html">tabs</a>, <a href="scheduler.html">scheduler</a>).</li>
+<li>Keys. The prompt, the pager and the editor share their line editing keys, with M-x, help keys and bindings written in omega (<a href="keys.html">keys</a>).</li>
+<li>phi. A tree of sets that holds named values, with a directory editor, <code>dired</code> (<a href="phi.html">phi</a>).</li>
+<li>Editor. <code>scrawl</code> edits the programs in root. An edit takes effect only if it builds, so a broken edit cannot break the running system (<a href="scrawl.html">scrawl</a>, <a href="root.html">root</a>).</li>
+<li>Saving. An installed disk is written after every line, and it keeps each shell&#x27;s world and the edits to root as omega source (<a href="saving.html">saving</a>).</li>
+<li>Boot loader. Installed disks boot with their own loader. GRUB is used only on the ISO (<a href="boot.html">boot</a>).</li>
+<li>Themes. The colour themes also change the logo that <code>sys</code> draws (<a href="themes.html">themes</a>, <a href="logos.html">logos</a>).</li>
+<li>Sound. A PC speaker driver provides <code>beep</code> (<a href="screen.html">screen</a>).</li>
+<li>Memory. A garbage collector manages omega&#x27;s objects (<a href="gc.html">gc</a>).</li>
+<li>Programs. <a href="tools.html">tools</a>, <a href="games.html">games</a> and <a href="demos.html">demos</a>. The <a href="demo-index.html">demo index</a> lists all of them.</li>
+</ul>
+<p>See <a href="design.html">design</a> and <a href="decisions.html">decisions</a> for what the system leaves out, and the <a href="roadmap.html">roadmap</a> for what is planned.</p>
+
+</main>
+<footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="../index.html#about">about</a><a href="../index.html#projects">projects</a><a href="../index.html#writing">writing</a><a href="../index.html#contact">contact</a></div></footer>
+</body>
+</html>
