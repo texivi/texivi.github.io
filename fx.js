@@ -1,9 +1,7 @@
 (function () {
   var d = document, rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var hd = d.querySelector("header"), pg = d.querySelector(".prog");
+  var hd = d.querySelector("header");
   function sc() {
-    var h = d.documentElement.scrollHeight - innerHeight;
-    if (pg) pg.style.transform = "scaleX(" + (h > 0 ? scrollY / h : 0) + ")";
     if (hd) hd.classList.toggle("sc", scrollY > 8);
   }
   addEventListener("scroll", sc, { passive: true }); sc();
