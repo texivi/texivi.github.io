@@ -18,10 +18,16 @@
       io.observe(el);
     });
   }
-  var art = d.querySelector(".art");
-  if (art && !rm) addEventListener("mousemove", function (e) {
-    var r = art.getBoundingClientRect(), x = (e.clientX - (r.left + r.width / 2)) / innerWidth, y = (e.clientY - (r.top + r.height / 2)) / innerHeight;
-    var g = art.querySelector("#pupils");
-    g.style.transform = "translate(" + Math.max(-1, Math.min(1, x * 3)) * 9 + "px," + Math.max(-1, Math.min(1, y * 3)) * 6 + "px)";
+  var arts = d.querySelectorAll(".art");
+  if (arts.length && !rm) addEventListener("mousemove", function (e) {
+    arts.forEach(function (art) {
+      var r = art.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      var x = e.clientX - cx, y = e.clientY - cy;
+      x = Math.max(-1, Math.min(1, x / (x < 0 ? cx : innerWidth - cx)));
+      y = Math.max(-1, Math.min(1, y / (y < 0 ? cy : innerHeight - cy)));
+      art.style.setProperty("--fx", x * 34);
+      art.style.setProperty("--px", x * 8);
+      art.style.setProperty("--py", y * 6);
+    });
   });
 })();

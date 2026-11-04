@@ -213,3 +213,57 @@ header.sc { box-shadow: 0 1px 12px rgba(60,40,90,.08); }
   .js .title::after { width: 0; transition: width .9s .35s cubic-bezier(.2,.8,.2,1); }
   .js .title.in::after { width: 3.4rem; }
 }
+
+/* windows */
+.tl { --c: #ff5f57; position: relative; display: inline-block; width: 13px; height: 13px; border-radius: 50%; background: radial-gradient(circle at 50% 115%, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 60%, color-mix(in srgb, var(--c) 82%, #000)); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2), inset 0 -1px 1.5px rgba(255,255,255,.45), 0 1px 1.5px rgba(40,30,60,.25); }
+.tl::after { content: ""; position: absolute; left: 2px; right: 2px; top: 1px; height: 46%; border-radius: 50%; background: linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,0)); }
+.tl.y { --c: #febc2e; } .tl.g { --c: #28c840; }
+.tb { position: relative; display: flex; align-items: center; gap: 8px; padding: .8rem .95rem; background: linear-gradient(rgba(255,255,255,.95), rgba(246,243,250,.9)); border-bottom: 1px solid rgba(60,40,90,.08); }
+.pill { position: absolute; left: 50%; transform: translateX(-50%); padding: .18rem .9rem; border-radius: 99px; font-size: .72rem; font-weight: 500; letter-spacing: .01em; color: var(--text); background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 1px 3px rgba(60,40,90,.1), inset 0 1px 0 #fff; backdrop-filter: blur(12px) saturate(180%); }
+.vc { color: var(--text); background: #fff; border: 0; border-radius: 16px; box-shadow: 0 0 0 .5px rgba(60,40,90,.16), 0 3px 8px rgba(70,50,110,.07), 0 22px 44px -16px rgba(70,50,110,.32); }
+.vc:hover { color: var(--text); transform: translateY(-5px); box-shadow: 0 0 0 .5px rgba(60,40,90,.2), 0 6px 14px rgba(70,50,110,.1), 0 30px 54px -16px rgba(70,50,110,.38); }
+.vc > div:not(.tb) { padding: 1.1rem 1.4rem 1.4rem; }
+.vc b { color: var(--dark); }
+.vc p { opacity: 1; }
+.vids.two { padding-top: 1.4rem; padding-bottom: 3rem; }
+.car { padding: 3.5rem 0 1rem; isolation: isolate; }
+.car::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(40rem 22rem at 12% 30%, #ece4f6, transparent 70%), radial-gradient(34rem 20rem at 55% 80%, #f7e4ea, transparent 70%), radial-gradient(36rem 22rem at 92% 25%, #e0efe8, transparent 70%), radial-gradient(26rem 16rem at 40% 10%, #f6f0d9, transparent 70%); -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); }
+.arr { background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.9); backdrop-filter: blur(14px) saturate(180%); box-shadow: 0 4px 14px rgba(70,50,110,.18), inset 0 1px 0 #fff; }
+.portrait { padding: 0; border: 0; background: #faf9fc; border-radius: 18px; box-shadow: 0 0 0 .5px rgba(60,40,90,.16), 0 22px 44px -16px rgba(70,50,110,.32); }
+.portrait .art { padding: 1rem 1.2rem 0; box-sizing: border-box; }
+header { background: rgba(255,255,255,.55); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); }
+header nav { gap: .2rem; padding: .3rem; border-radius: 99px; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 1px 4px rgba(60,40,90,.1), inset 0 1px 0 #fff; }
+header nav a { padding: .35rem .9rem; border-radius: 99px; transition: background .2s, color .2s; }
+header nav a:hover { background: rgba(125,112,146,.14); }
+.facts div:nth-child(1), .stack div:nth-child(1) { background: linear-gradient(145deg, #fbf9ff, #efe8f8); }
+.facts div:nth-child(2), .stack div:nth-child(2) { background: linear-gradient(145deg, #fffafb, #f8e8ee); }
+.facts div:nth-child(3) { background: linear-gradient(145deg, #f9fffc, #e4f2ec); }
+.facts div:nth-child(4) { background: linear-gradient(145deg, #fffef8, #f6f0da); }
+.facts div, .stack div { border-color: rgba(255,255,255,.9); box-shadow: 0 0 0 .5px rgba(60,40,90,.1), 0 10px 24px -14px rgba(70,50,110,.25); }
+
+/* flat */
+.tl { background: var(--c); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.14); }
+.tl::after { display: none; }
+.ttl { position: absolute; left: 50%; transform: translateX(-50%); font-size: .78rem; font-weight: 500; color: var(--text); }
+.vc > div:not(.tb) p { margin: 0; font-size: .9rem; line-height: 1.65; color: var(--text); }
+header { background: rgba(255,255,255,.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+header nav { gap: 2rem; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+header nav a { padding: 0; border-radius: 0; }
+header nav a:hover { background: none; }
+.arr { background: #fff; border: 1px solid var(--line); backdrop-filter: none; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+.car::before { display: none; }
+.facts div:nth-child(n), .stack div:nth-child(n) { background: #fff; border: 1px solid var(--line); box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+
+/* paint avatar */
+.art .face { transform: translate(calc(var(--fx, 0) * 1px), 0); transition: transform .12s ease-out; }
+.art .pupils { transform: translate(calc(var(--px, 0) * 1px), calc(var(--py, 0) * 1px)); transition: transform .12s ease-out; }
+.art .pupils circle { transform-box: fill-box; transform-origin: center; animation: blink 5.5s infinite; }
+.hero .art { width: 17rem; max-width: 80vw; height: auto; margin-bottom: 1.5rem; overflow: visible; }
+.wave { transform-box: view-box; transform-origin: 278px 326px; }
+@media (prefers-reduced-motion: no-preference) { .wave { animation: wv 2.4s ease-in-out infinite; } @keyframes wv { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(10deg); } 50% { transform: rotate(-4deg); } 75% { transform: rotate(9deg); } } }
+.vc .tl, .portrait .tl { background: #cfccd6; transition: background .25s; }
+.vc:hover .tl.r, .portrait:hover .tl.r { background: #ff5f57; }
+.vc:hover .tl.y, .portrait:hover .tl.y { background: #febc2e; }
+.vc:hover .tl.g, .portrait:hover .tl.g { background: #28c840; }
+.vc:hover { transform: none; box-shadow: 0 0 0 .5px rgba(60,40,90,.16), 0 3px 8px rgba(70,50,110,.07), 0 22px 44px -16px rgba(70,50,110,.32); }
+.vc:hover .im img { transform: none; }
