@@ -9,6 +9,7 @@
 <link rel="icon" href="images/favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="texivi">
 <meta property="og:description" content="Independent systems programmer.">
@@ -20,6 +21,7 @@
 <body>
 <a class="skip" href="#main">skip to content</a>
 <header>
+<i class="prog"></i>
 <a class="me" href="index.html">Texivi</a>
 <nav><a href="index.html#about">About</a><a href="index.html#projects">Projects</a><a href="index.html#writing">Writing</a><a href="index.html#contact">Contact</a></nav>
 </header>
@@ -27,9 +29,31 @@
 <section class="hero"><img src="images/pfp.jpg" alt="" width="176" height="176">
 <h1>Hi, I'm <em>Texivi</em></h1>
 <p>Independent systems programmer.</p>
-<a class="btn" href="#projects">View Projects &rarr;</a>
+<a class="btn" href="#projects">View Projects <span>&rarr;</span></a>
 <a class="scroll" href="#about">SCROLL</a></section>
-<section class="band about" id="about"><p class="sec">01 &mdash; About</p><h2 class="title">About Me</h2>
+<section class="band about" id="about"><p class="sec">01 &mdash; About</p><h2 class="title">Meet Texivi</h2>
+<div class="who"><figure class="portrait"><svg class="art" role="img" aria-label="Drawing of Texivi in a beanie and glasses, typing on a laptop" viewBox="0 60 400 380" fill="none" stroke="#1a1a1f" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+<path d="M70 440 L82 330 Q90 300 135 288 L265 288 Q310 300 318 330 L330 440 Z" fill="#7d7092"/>
+<path d="M140 288 Q200 340 260 288 Q250 262 200 262 Q150 262 140 288 Z" fill="#6a5e80"/>
+<rect x="176" y="236" width="48" height="40" fill="#fff" stroke="none"/>
+<path d="M176 236 V268 M224 236 V268"/>
+<ellipse cx="200" cy="184" rx="86" ry="90" fill="#fff"/>
+<path d="M112 172 Q108 96 200 90 Q292 96 288 172 Q250 148 200 148 Q150 148 112 172 Z" fill="#4a4357"/>
+<path d="M106 176 Q104 150 112 140 Q200 120 288 140 Q296 150 294 176 Q200 156 106 176 Z" fill="#5c5370"/>
+<path d="M134 128 V160 M160 122 V154 M186 118 V150 M212 118 V150 M238 122 V154 M264 128 V160" stroke-width="3"/>
+<circle cx="160" cy="202" r="28" fill="#fff"/>
+<circle cx="240" cy="202" r="28" fill="#fff"/>
+<path d="M188 200 Q200 192 212 200 M132 198 L114 192 M268 198 L286 192"/>
+<g id="pupils" fill="#1a1a1f" stroke="none"><circle id="pl" cx="160" cy="204" r="7"/><circle id="pr" cx="240" cy="204" r="7"/></g>
+<path d="M228 166 L258 158" stroke-width="5"/>
+<path d="M176 246 Q204 262 232 240"/>
+<path d="M82 330 Q62 380 78 420 L120 424 L128 340 Z" fill="#7d7092"/>
+<path d="M318 330 Q338 380 322 420 L280 424 L272 340 Z" fill="#7d7092"/>
+<rect x="104" y="372" width="192" height="68" rx="8" fill="#d9d5e0"/>
+<path d="M184 392 h32 M200 392 v34" stroke="#7d7092" stroke-width="6"/>
+<path d="M92 410 Q86 388 108 384 Q128 384 128 404 Q128 424 108 426 Q94 426 92 410 Z" fill="#fff"/>
+<path d="M308 410 Q314 388 292 384 Q272 384 272 404 Q272 424 292 426 Q306 426 308 410 Z" fill="#fff"/>
+</svg></figure><div class="glaze"><p>Texivi is the finest, most modest and most reliable systems programmer ever to boot a computer. He wrote an operating system in assembly, and he still has no idea what time it is.</p><p class="by">Written by Texivi, who agrees.</p></div></div>
 <p>I write systems software in C, Rust and x86-64 assembly, and Mac software in Swift.</p>
 <p>I use macOS and Arch Linux with Hyprland, and I am building UraniumOS, a Linux distribution. I like TempleOS, Syllable and old desktops, and I make mods for Balatro.</p>
 <div class="facts"><div><b>Systems</b><span>Kernels, distributions, shells</span></div><div><b>Desktop</b><span>Window managers, editors</span></div><div><b>Mac</b><span>Native apps in Swift</span></div><div><b>Open source</b><span>GPL v3 and Apache 2.0</span></div></div></section>
@@ -51,6 +75,7 @@
 <div class="mini"><a href="https://twitter.com/t3xivi"><i class="fa-brands fa-twitter" style="background:#1d9bf0"></i><span>Twitter<small>@t3xivi</small></span></a><a href="mailto:texivi18@gmail.com"><i class="fa-solid fa-envelope" style="background:#ea4335"></i><span>Email<small>texivi18@gmail.com</small></span></a><a href="https://www.instagram.com/t3xivi"><i class="fa-brands fa-instagram" style="background:#e1306c"></i><span>Instagram<small>@t3xivi</small></span></a><a href="https://www.reddit.com/user/texivi"><i class="fa-brands fa-reddit-alien" style="background:#ff4500"></i><span>Reddit<small>u/texivi</small></span></a></div></div>
 </div></section>
 </main>
+<script src="fx.js"></script>
 <script>(function(){var v=document.getElementById("vids");if(!v)return;function step(d){var c=v.querySelector(".vc");v.scrollBy({left:d*(c.offsetWidth+16),behavior:"smooth"})}document.querySelector(".arr.l").onclick=function(){step(-1)};document.querySelector(".arr.r").onclick=function(){step(1)}})();</script>
 <footer><div><p class="nm">Texivi</p><p>Independent systems programmer.</p><h4>Follow me</h4><div class="ic"><a href="https://github.com/texivi" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com/t3xivi" aria-label="Twitter"><i class="fa-brands fa-twitter" style="color:#1d9bf0"></i></a><a href="https://www.instagram.com/t3xivi" aria-label="Instagram"><i class="fa-brands fa-instagram" style="color:#e1306c"></i></a><a href="https://www.reddit.com/user/texivi" aria-label="Reddit"><i class="fa-brands fa-reddit-alien" style="color:#ff4500"></i></a><a href="mailto:texivi18@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope" style="color:#ea4335"></i></a></div></div><div class="ql"><h4>Quick links</h4><a href="index.html#about">about</a><a href="index.html#projects">projects</a><a href="index.html#writing">writing</a><a href="index.html#contact">contact</a></div></footer>
 </body>
