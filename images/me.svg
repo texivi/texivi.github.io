@@ -1,15 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 60 400 380" fill="none" stroke="#1a1a1f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="176" y="250" width="48" height="70" fill="#fff"/>
-<rect x="104" y="296" width="192" height="160" rx="26" fill="#7d7092"/>
-<rect x="150" y="286" width="100" height="30" rx="15" fill="#6a5e80"/><line x1="120" y1="330" x2="116" y2="398" stroke="#1a1a1f" stroke-width="38"/><line x1="120" y1="330" x2="116" y2="398" stroke="#7d7092" stroke-width="30"/><line x1="280" y1="330" x2="284" y2="398" stroke="#1a1a1f" stroke-width="38"/><line x1="280" y1="330" x2="284" y2="398" stroke="#7d7092" stroke-width="30"/><circle cx="112" cy="204" r="13" fill="#fff"/><circle cx="288" cy="204" r="13" fill="#fff"/>
-<clipPath id="hc1"><circle cx="200" cy="190" r="86"/></clipPath>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 60 400 380" fill="none" stroke="#1a1a1f" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><path d="M112 312 C94 268 134 246 170 256 L230 256 C266 246 306 268 288 312 Z" fill="#8c80a3"/>
+<rect x="176" y="250" width="48" height="40" fill="#fff"/>
+<path d="M88 446 C88 396 94 350 120 322 C146 298 172 292 200 292 C228 292 254 298 280 322 C306 350 312 396 312 446 Z" fill="#7d7092"/>
+<rect x="148" y="272" width="104" height="34" rx="17" fill="#6a5e80"/><line x1="104" y1="350" x2="112" y2="400" stroke="#1a1a1f" stroke-width="38"/><line x1="104" y1="350" x2="112" y2="400" stroke="#7d7092" stroke-width="29"/><line x1="296" y1="350" x2="288" y2="400" stroke="#1a1a1f" stroke-width="38"/><line x1="296" y1="350" x2="288" y2="400" stroke="#7d7092" stroke-width="29"/><path d="M176 316 L172 374 M224 316 L228 374" stroke="#fff" stroke-width="5"/>
+<rect x="167" y="368" width="9" height="16" rx="3.5" fill="#fff" stroke-width="3"/><rect x="224" y="368" width="9" height="16" rx="3.5" fill="#fff" stroke-width="3"/><circle cx="112" cy="204" r="13" fill="#fff"/><circle cx="288" cy="204" r="13" fill="#fff"/>
 <circle cx="200" cy="190" r="88" fill="#fff"/>
-<g clip-path="url(#hc1)"><g class="face">
-<g class="pupils" fill="#1a1a1f" stroke="none"><ellipse cx="162" cy="204" rx="8" ry="11"/><ellipse cx="238" cy="204" rx="8" ry="11"/></g>
-<path d="M178 244 Q200 262 222 244" fill="none"/>
+<clipPath id="fc1"><circle cx="200" cy="190" r="86"/></clipPath>
+<g clip-path="url(#fc1)"><g class="face">
+<circle cx="160" cy="206" r="25" fill="#fff"/><circle cx="240" cy="206" r="25" fill="#fff"/>
+<path d="M185 204 Q200 194 215 204" fill="none"/><line x1="135" y1="204" x2="112" y2="200"/><line x1="265" y1="204" x2="288" y2="200"/>
+<g class="pupils" fill="#1a1a1f" stroke="none"><circle cx="160" cy="206" r="7"/><circle cx="240" cy="206" r="7"/></g>
+<line x1="144" y1="176" x2="176" y2="178"/><line x1="226" y1="172" x2="258" y2="162"/>
+<path d="M204 216 Q214 232 202 236" fill="none"/>
+<path d="M170 252 Q206 274 244 248" fill="none"/>
 </g></g>
-<ellipse cx="200" cy="130" rx="84" ry="46" fill="#4a4357"/>
-<rect x="114" y="132" width="172" height="40" rx="10" fill="#5c5370"/>
-<g stroke-width="3"><line x1="140" y1="140" x2="140" y2="164"/><line x1="166" y1="140" x2="166" y2="164"/><line x1="192" y1="140" x2="192" y2="164"/><line x1="218" y1="140" x2="218" y2="164"/><line x1="244" y1="140" x2="244" y2="164"/><line x1="268" y1="140" x2="268" y2="164"/></g>
+<ellipse cx="200" cy="118" rx="84" ry="46" fill="#4a4357"/>
+<rect x="114" y="120" width="172" height="38" rx="10" fill="#5c5370"/>
+<g stroke-width="3"><line x1="140" y1="128" x2="140" y2="150"/><line x1="166" y1="128" x2="166" y2="150"/><line x1="192" y1="128" x2="192" y2="150"/><line x1="218" y1="128" x2="218" y2="150"/><line x1="244" y1="128" x2="244" y2="150"/><line x1="268" y1="128" x2="268" y2="150"/></g>
 <rect x="104" y="350" width="192" height="92" rx="10" fill="#dcdbe3"/>
 <path transform="translate(182 374) scale(.092)" fill="#1a1a1f" stroke="none" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
 <circle cx="112" cy="404" r="17" fill="#fff"/><circle cx="288" cy="404" r="17" fill="#fff"/></svg>

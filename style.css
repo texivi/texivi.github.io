@@ -266,3 +266,25 @@ header nav a:hover { background: none; }
 .vc:hover .tl.g, .portrait:hover .tl.g { background: #28c840; }
 .vc:hover { transform: none; box-shadow: 0 0 0 .5px rgba(60,40,90,.16), 0 3px 8px rgba(70,50,110,.07), 0 22px 44px -16px rgba(70,50,110,.32); }
 .vc:hover .im img { transform: none; }
+
+/* buttons */
+button.tl { --c: #ff5a56; --ring: #e04b48; --ink: #7a0c0c; padding: 0; border: 0; cursor: pointer; width: 13px; height: 13px; border-radius: 50%; background: #d6d3dc; box-shadow: inset 0 0 0 1.3px #bfbbc8; transition: background .2s, box-shadow .2s; flex: none; }
+button.tl.y { --c: #fdb73d; --ring: #dea232; --ink: #995614; }
+button.tl.g { --c: #35c84c; --ring: #29a63a; --ink: #0a6a0c; }
+.vc:hover button.tl, .portrait:hover button.tl { background: var(--c); box-shadow: inset 0 0 0 1.3px var(--ring); }
+button.tl::after { content: ""; display: block; position: static; width: 100%; height: 100%; background: center / 100% no-repeat; opacity: 0; transition: opacity .12s; }
+.tb:hover button.tl::after { opacity: 1; }
+button.tl.r::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Cpath d='M4 4 L9 9 M9 4 L4 9' stroke='%237a0c0c' stroke-width='1.9'/%3E%3C/svg%3E"); }
+button.tl.y::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Crect x='3.2' y='5.6' width='6.6' height='1.8' fill='%23995614'/%3E%3C/svg%3E"); }
+button.tl.g::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Cpath d='M5.2 3.3 H9.7 V7.8 Z M7.8 9.7 H3.3 V5.2 Z' fill='%230a6a0c'/%3E%3C/svg%3E"); }
+.vc.min, .portrait.min { visibility: hidden; }
+.vc.gone, .portrait.gone { animation: gone 2.2s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes gone { 0% { scale: 1; opacity: 1; } 14% { scale: .82; opacity: 0; } 72% { scale: .82; opacity: 0; } 100% { scale: 1; opacity: 1; } }
+
+/* dock */
+.dock { position: fixed; left: 50%; bottom: 16px; z-index: 30; display: none; gap: 8px; padding: 8px; transform: translateX(-50%); background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 28px rgba(60,40,90,.18); }
+.dock.on { display: flex; }
+.dock button { position: relative; width: 46px; height: 46px; padding: 0; border: 1px solid var(--line); border-radius: 11px; background: #faf9fc center / cover; cursor: pointer; transition: transform .2s; }
+.dock button:hover { transform: translateY(-6px) scale(1.12); }
+.dock button.pop { animation: dpop .45s cubic-bezier(.2,.9,.3,1.4); }
+@keyframes dpop { from { transform: translateY(-14px) scale(.6); } }

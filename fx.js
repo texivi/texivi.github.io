@@ -29,4 +29,40 @@
       art.style.setProperty("--py", y * 7);
     });
   });
+  d.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest("button.tl"), w = t && t.closest(".vc, .portrait");
+    if (!w) return;
+    if (t.classList.contains("g")) { var a = w.querySelector("a.im"); location.href = a ? a.href : "images/me.svg"; }
+    else if (t.classList.contains("y")) minimize(w);
+    else { w.classList.add("gone"); setTimeout(function () { w.classList.remove("gone"); }, 2300); }
+  });
+  var dock, FULL = "polygon(0 0,100% 0,100% 50%,100% 100%,0 100%,0 50%)", MID = "polygon(14% 0,86% 0,80% 50%,64% 100%,36% 100%,20% 50%)", END = "polygon(36% 0,64% 0,56% 60%,52% 100%,48% 100%,44% 60%)";
+  function genie(w, item, back) {
+    var r = w.getBoundingClientRect(), t = item.getBoundingClientRect();
+    var dx = t.left + t.width / 2 - (r.left + r.width / 2), dy = t.top + t.height / 2 - (r.top + r.height / 2);
+    return w.animate([
+      { translate: "0 0", scale: 1, clipPath: FULL, opacity: 1 },
+      { translate: dx * .55 + "px " + dy * .55 + "px", scale: .55, clipPath: MID, opacity: 1, offset: .55 },
+      { translate: dx + "px " + dy + "px", scale: Math.max(.05, t.width / r.width), clipPath: END, opacity: .6 }
+    ], { duration: 700, easing: "cubic-bezier(.6,.05,.4,1)", direction: back ? "reverse" : "normal" });
+  }
+  function minimize(w) {
+    if (w.classList.contains("min") || w.busy) return;
+    var im = w.querySelector(".im img"), ti = w.querySelector(".ttl"), item = d.createElement("button");
+    item.type = "button"; item.setAttribute("aria-label", "Restore " + (ti ? ti.textContent : "window"));
+    item.style.backgroundImage = "url(" + (im ? im.src : "images/me.svg") + ")";
+    if (!dock) { dock = d.createElement("div"); dock.className = "dock"; d.body.appendChild(dock); }
+    dock.appendChild(item); dock.classList.add("on");
+    if (rm) { w.classList.add("min"); } else {
+      w.busy = true; item.style.visibility = "hidden";
+      genie(w, item, false).onfinish = function () { w.classList.add("min"); w.busy = false; item.style.visibility = ""; item.classList.add("pop"); };
+    }
+    item.onclick = function () {
+      if (w.busy) return;
+      var done = function () { item.remove(); if (!dock.children.length) dock.classList.remove("on"); };
+      if (rm) { w.classList.remove("min"); done(); return; }
+      w.busy = true; item.style.visibility = "hidden"; w.classList.remove("min");
+      genie(w, item, true).onfinish = function () { w.busy = false; done(); };
+    };
+  }
 })();
