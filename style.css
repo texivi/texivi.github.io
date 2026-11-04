@@ -255,7 +255,6 @@ header nav a:hover { background: none; }
 .facts div:nth-child(n), .stack div:nth-child(n) { background: #fff; border: 1px solid var(--line); box-shadow: 0 1px 4px rgba(0,0,0,.04); }
 
 /* paint avatar */
-.art .face { transform: translate(calc(var(--fx, 0) * 1px), 0); transition: transform .12s ease-out; }
 .art .pupils { transform: translate(calc(var(--px, 0) * 1px), calc(var(--py, 0) * 1px)); transition: transform .12s ease-out; }
 .art .pupils circle { transform-box: fill-box; transform-origin: center; animation: blink 5.5s infinite; }
 .hero .art { width: 17rem; max-width: 80vw; height: auto; margin-bottom: 1.5rem; overflow: visible; }

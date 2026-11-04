@@ -4,12 +4,8 @@
 <clipPath id="hc2"><circle cx="200" cy="190" r="86"/></clipPath>
 <circle cx="200" cy="190" r="88" fill="#fff"/>
 <g clip-path="url(#hc2)"><g class="face">
-<circle cx="160" cy="206" r="25" fill="#fff"/><circle cx="240" cy="206" r="25" fill="#fff"/>
-<path d="M185 204 Q200 194 215 204" fill="none"/><line x1="135" y1="204" x2="112" y2="200"/><line x1="265" y1="204" x2="288" y2="200"/>
-<g class="pupils" fill="#1a1a1f" stroke="none"><circle cx="160" cy="206" r="7"/><circle cx="240" cy="206" r="7"/></g>
-<line x1="144" y1="170" x2="176" y2="172"/><line x1="226" y1="166" x2="258" y2="156"/>
-<path d="M204 216 Q214 232 202 236" fill="none"/>
-<path d="M170 252 Q206 274 244 248" fill="none"/>
+<g class="pupils" fill="#1a1a1f" stroke="none"><ellipse cx="162" cy="204" rx="8" ry="11"/><ellipse cx="238" cy="204" rx="8" ry="11"/></g>
+<path d="M178 244 Q200 262 222 244" fill="none"/>
 </g></g>
 <ellipse cx="200" cy="130" rx="84" ry="46" fill="#4a4357"/>
 <rect x="114" y="132" width="172" height="40" rx="10" fill="#5c5370"/>

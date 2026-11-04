@@ -25,9 +25,8 @@
       var x = e.clientX - cx, y = e.clientY - cy;
       x = Math.max(-1, Math.min(1, x / (x < 0 ? cx : innerWidth - cx)));
       y = Math.max(-1, Math.min(1, y / (y < 0 ? cy : innerHeight - cy)));
-      art.style.setProperty("--fx", x * 34);
-      art.style.setProperty("--px", x * 8);
-      art.style.setProperty("--py", y * 6);
+      art.style.setProperty("--px", x * 9);
+      art.style.setProperty("--py", y * 7);
     });
   });
 })();
